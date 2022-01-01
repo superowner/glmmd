@@ -1,3 +1,5 @@
+add_subdirectory(imgui)
+
 add_executable(glmmd)
 
 target_sources(glmmd
@@ -27,4 +29,5 @@ PRIVATE
 target_link_libraries(glmmd
 PRIVATE 
     glfw
+    imgui
 )

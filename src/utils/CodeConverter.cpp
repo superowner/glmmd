@@ -34,6 +34,24 @@ std::string UTF8toANSI(const std::string &src)
 }
 #endif
 
+std::string UTF16_LE_to_UTF8(const std::string &src)
+{
+    std::wstring wsrc;
+    for (size_t i = 0; i < src.size(); i += 2)
+    {
+        char b[4]{src[i], src[i + 1], '\0', '\0'};
+        wsrc.push_back(*(wchar_t *)(b));
+    }
+
+    std::wistringstream wiss(wsrc);
+    wiss.imbue(std::locale(
+        wiss.getloc(),
+        new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>));
+
+    return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}
+        .to_bytes(wiss.str());
+}
+
 std::string convertToNativeEncoding(const std::string &src, EncodingType ty)
 {
     if (ty == EncodingType::UTF8)
@@ -46,22 +64,7 @@ std::string convertToNativeEncoding(const std::string &src, EncodingType ty)
     }
     else if (ty == EncodingType::UTF16_LE)
     {
-        std::wstring wsrc;
-        for (size_t i = 0; i < src.size(); i += 2)
-        {
-            char b[4]{src[i], src[i + 1], '\0', '\0'};
-            wsrc.push_back(*(wchar_t *)(b));
-        }
-
-        std::wistringstream wiss(wsrc);
-        wiss.imbue(std::locale(
-            wiss.getloc(),
-            new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>));
-
-        std::string src_u8 =
-            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}
-                .to_bytes(wiss.str());
-        return convertToNativeEncoding(src_u8, EncodingType::UTF8);
+        return convertToNativeEncoding(UTF16_LE_to_UTF8(src), EncodingType::UTF8);
     }
     return "";
 }

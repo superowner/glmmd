@@ -10,5 +10,6 @@ enum class EncodingType
 };
 
 extern std::string convertToNativeEncoding(const std::string &src, EncodingType ty);
+extern std::string UTF16_LE_to_UTF8(const std::string &src);
 
 #endif
