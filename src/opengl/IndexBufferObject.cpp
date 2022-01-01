@@ -12,6 +12,7 @@ void IndexBufferObject::create(const unsigned int *data, unsigned int size)
     glGenBuffers(1, &m_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    m_count = size / sizeof(unsigned int);
 }
 
 void IndexBufferObject::destroy()

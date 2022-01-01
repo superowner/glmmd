@@ -1,4 +1,4 @@
-add_subdirectory(imgui)
+add_subdirectory(3rdparty)
 
 add_executable(glmmd)
 
@@ -8,6 +8,9 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/pmx/PmxModel.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/Renderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/PmxModelRenderer.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/CodeConverter.cpp
     
@@ -24,6 +27,7 @@ PRIVATE
     ${PROJECT_SOURCE_DIR}/deps/glfw/include
     ${PROJECT_SOURCE_DIR}/deps/glm
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/3rdparty
 )
 
 target_link_libraries(glmmd

@@ -118,3 +118,6 @@ namespace ImGui
     void MyFunction(const char* name, const MyMatrix44& v);
 }
 */
+#ifdef __MINGW32__
+#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS
+#endif
