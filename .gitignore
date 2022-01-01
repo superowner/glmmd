@@ -6,4 +6,5 @@
 !res/
 !include/
 !deps/
+!doc/
 !README.md
