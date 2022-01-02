@@ -15,6 +15,8 @@ public:
     Shader(const Shader &) = delete;
     Shader &operator=(const Shader &) = delete;
 
+    unsigned int getId() const;
+
     void use() const;
     void destroy();
 };

@@ -3,17 +3,14 @@
 
 #include <iostream>
 
-#include <pmx/PmxModel.h>
-
-#include <utils/CodeConverter.h>
-
 #include <opengl/common.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
-#include <renderer/PmxModelRenderer.h>
+#include <engine/PmxModelRenderer.h>
+#include <engine/Scene.h>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -50,7 +47,9 @@ int main(int argc, char *argv[])
 
         Shader shader(projRootAbs + "res/shaders/basic_vert.shader", projRootAbs + "res/shaders/basic_frag.shader");
         PmxModelRenderer renderer(&model);
-
+        Scene mainScene;
+        mainScene.addObject(renderer);
+        mainScene.addShader(shader);
         glEnable(GL_DEPTH_TEST);
 
         while (!glfwWindowShouldClose(window))
@@ -65,8 +64,11 @@ int main(int argc, char *argv[])
             ImGui::NewFrame();
 
             {
-                renderer.OnRender(shader);
-                ImGui::Begin("Test");
+                mainScene.onUpdate(0.0f);
+                mainScene.onRender();
+                ImGui::Begin("Control Panel");
+                ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
+                mainScene.onImGuiRender();
                 ImGui::End();
             }
 

@@ -1,10 +1,10 @@
 #ifndef PMX_MODEL_RENDERER_H_
 #define PMX_MODEL_RENDERER_H_
 
-#include <renderer/Renderer.h>
+#include <engine/ObjectBase.h>
 #include <pmx/PmxModel.h>
-
-class PmxModelRenderer : public Renderer
+#include <opengl/common.h>
+class PmxModelRenderer : public ObjectBase
 {
 private:
     pmx::Model *m_pModel;
@@ -15,7 +15,7 @@ private:
 
 public:
     PmxModelRenderer(pmx::Model *);
-    void OnRender(const Shader &) const;
+    void onRender() override;
 };
 
 #endif

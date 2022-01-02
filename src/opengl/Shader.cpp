@@ -74,6 +74,7 @@ Shader::Shader(const std::string &vertPath, const std::string &fragPath)
 }
 
 void Shader::use() const { glUseProgram(m_id); }
+unsigned int Shader::getId() const { return m_id; }
 void Shader::destroy()
 {
     if (m_id != 0)

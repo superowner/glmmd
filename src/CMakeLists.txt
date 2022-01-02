@@ -9,8 +9,10 @@ PRIVATE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/pmx/PmxModel.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/Renderer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/PmxModelRenderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/ObjectBase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/PmxModelRenderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/Camera.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/Scene.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/CodeConverter.cpp
     

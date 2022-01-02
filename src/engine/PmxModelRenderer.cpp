@@ -1,4 +1,5 @@
-#include <renderer/PmxModelRenderer.h>
+#include <engine/PmxModelRenderer.h>
+
 PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel)
     : m_pModel(pModel)
 {
@@ -50,9 +51,8 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel)
         m_texList[i].create(m_pModel->texturePath[i]);
 }
 
-void PmxModelRenderer::OnRender(const Shader &shader) const
+void PmxModelRenderer::onRender()
 {
-    shader.use();
     m_VAO.bind();
 
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
