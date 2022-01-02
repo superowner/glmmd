@@ -9,13 +9,18 @@ Camera::Camera(float _yfov, float _near, float _far, glm::vec3 _pos, glm::vec3 _
 }
 glm::mat4 Camera::getViewMatrix() const
 {
-    return glm::lookAt(pos, target, up);
+    return glm::lookAt(pos, pos - dir, up);
 }
-glm::mat4 Camera::getProjMatrix(float aspect) const
+glm::mat4 Camera::getProjMatrix() const
 {
     return glm::perspective(yfov, aspect, near, far);
 }
 glm::mat4 Camera::getOrthoProjMatrix(float left, float right, float bottom, float top) const
 {
     return glm::ortho(left, right, bottom, top, near, far);
+}
+
+void Camera::translate(const glm::vec3 &displacement)
+{
+    pos += displacement;
 }

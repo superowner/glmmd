@@ -3,15 +3,18 @@
 
 #include <engine/Camera.h>
 #include <engine/ObjectBase.h>
+#include <engine/Event.h>
 #include <opengl/common.h>
 #include <vector>
-
 class Scene
 {
 private:
     Camera m_camera;
     std::vector<ObjectBase *> m_objectList;
     std::vector<Shader *> m_shaderList;
+
+public:
+    EventQueue eventQueue;
 
 public:
     Scene();

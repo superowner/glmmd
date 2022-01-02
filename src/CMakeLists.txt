@@ -13,6 +13,7 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/PmxModelRenderer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/Camera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/Scene.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/Event.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/CodeConverter.cpp
     

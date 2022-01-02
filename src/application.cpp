@@ -20,6 +20,8 @@ const unsigned int SCR_HEIGHT = 600;
 
 const std::string projRootAbs("D:/Dev/cpp/glmmd/");
 
+Scene mainScene;
+
 GLFWwindow *initWindow();
 
 int main(int argc, char *argv[])
@@ -47,7 +49,9 @@ int main(int argc, char *argv[])
 
         Shader shader(projRootAbs + "res/shaders/basic_vert.shader", projRootAbs + "res/shaders/basic_frag.shader");
         PmxModelRenderer renderer(&model);
-        Scene mainScene;
+
+        mainScene.eventQueue.pushWindowResize(SCR_WIDTH, SCR_HEIGHT);
+
         mainScene.addObject(renderer);
         mainScene.addShader(shader);
         glEnable(GL_DEPTH_TEST);
@@ -64,7 +68,7 @@ int main(int argc, char *argv[])
             ImGui::NewFrame();
 
             {
-                mainScene.onUpdate(0.0f);
+                mainScene.onUpdate(1.0f / ImGui::GetIO().Framerate);
                 mainScene.onRender();
                 ImGui::Begin("Control Panel");
                 ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
@@ -111,9 +115,19 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        mainScene.eventQueue.pushKeyboardPress(GLFW_KEY_W);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        mainScene.eventQueue.pushKeyboardPress(GLFW_KEY_S);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        mainScene.eventQueue.pushKeyboardPress(GLFW_KEY_A);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        mainScene.eventQueue.pushKeyboardPress(GLFW_KEY_D);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
+    mainScene.eventQueue.pushWindowResize(width, height);
     glViewport(0, 0, width, height);
 }
