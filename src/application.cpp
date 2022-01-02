@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
     model.loadFromFile(projRootAbs + "res/models/HakureiReimu0.958_Sheep3D/reimu_Sheep3D_0.958.pmx");
 
     GLFWwindow *window = initWindow();
+    if (window == nullptr)
+        return -1;
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -49,12 +51,14 @@ int main(int argc, char *argv[])
         Shader shader(projRootAbs + "res/shaders/basic_vert.shader", projRootAbs + "res/shaders/basic_frag.shader");
         PmxModelRenderer renderer(&model);
 
+        glEnable(GL_DEPTH_TEST);
+
         while (!glfwWindowShouldClose(window))
         {
             processInput(window);
 
-            glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(0.2f, 0.3f, 0.8f, 0.8f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -62,7 +66,7 @@ int main(int argc, char *argv[])
 
             {
                 renderer.OnRender(shader);
-                ImGui::Begin("");
+                ImGui::Begin("Test");
                 ImGui::End();
             }
 
@@ -79,12 +83,11 @@ int main(int argc, char *argv[])
 
 GLFWwindow *initWindow()
 {
-    initWindow()
-
-        glfwInit();
+    glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -95,7 +98,7 @@ GLFWwindow *initWindow()
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return -1;
+        return nullptr;
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);

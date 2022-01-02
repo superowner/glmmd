@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <pmx/PmxModel.h>
-
+#include <utils/CodeConverter.h>
 #include <stdexcept>
 
 #define PMX_LOADER_THROW(cond, msg)        \
@@ -98,6 +98,29 @@ namespace pmx
         freadFloat<1>(&vert.edgeScale, fp);
     }
 
+    void Model::freadMaterial(Material &mat, FILE *fp)
+    {
+        freadTextBuf(mat.name, fp);
+        freadTextBuf(mat.nameEN, fp);
+        freadFloat<4>(&mat.diffuse, fp);
+        freadFloat<3>(&mat.specular, fp);
+        freadFloat<1>(&mat.specIntensity, fp);
+        freadFloat<3>(&mat.ambient, fp);
+        fread(&mat.bitFlag, 1, 1, fp);
+        freadFloat<4>(&mat.edgeColor, fp);
+        freadFloat<1>(&mat.edgeSize, fp);
+        freadInt(mat.diffuseTexId, info.byteSize[TEX_IDX_SIZE], fp);
+        freadInt(mat.sphereTexId, info.byteSize[TEX_IDX_SIZE], fp);
+        fread(&mat.sphereMode, 1, 1, fp);
+        fread(&mat.sharedToonFlag, 1, 1, fp);
+        if (mat.sharedToonFlag)
+            fread(&mat.toonTexId, 1, 1, fp);
+        else
+            freadInt(mat.toonTexId, info.byteSize[TEX_IDX_SIZE], fp);
+        freadTextBuf(mat.memo, fp);
+        freadUint(mat.indexCount, 4, fp);
+    }
+
     void Model::loadFromFile(const std::string &filename)
     {
         FILE *fp;
@@ -133,7 +156,30 @@ namespace pmx
         indices.resize(indexCount);
         for (auto &i : indices)
             freadUint(i, info.byteSize[VERT_IDX_SIZE], fp);
+
+        uint32_t textureCount;
+        freadUint(textureCount, 4, fp);
+        texturePath.resize(textureCount);
+
+        std::string modelFileDir;
+        auto splitPos = filename.rfind('/');
+        if (splitPos == std::string::npos)
+            splitPos = filename.rfind('\\');
+        if (splitPos != std::string::npos)
+            modelFileDir = filename.substr(0, splitPos + 1);
+
+        for (auto &tp : texturePath)
+        {
+            std::string rawPath;
+            freadTextBuf(rawPath, fp);
+            tp = modelFileDir + convertToNativeEncoding(rawPath, info.byteSize[ENCODING] ? EncodingType::UTF8 : EncodingType::UTF16_LE);
+        }
+
+        uint32_t materialCount;
+        freadUint(materialCount, 4, fp);
+        materials.resize(materialCount);
+        for (auto &m : materials)
+            freadMaterial(m, fp);
         fclose(fp);
     }
-
 }

@@ -18,6 +18,7 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/IndexBufferObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/VertexArrayObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/Shader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/Texture2D.cpp
 
 )
 

@@ -10,7 +10,8 @@ private:
     pmx::Model *m_pModel;
     VertexArrayObject m_VAO;
     VertexBufferObject m_VBO;
-    IndexBufferObject m_IBO;
+    std::vector<IndexBufferObject> m_IBOList;
+    std::vector<Texture2D> m_texList;
 
 public:
     PmxModelRenderer(pmx::Model *);

@@ -11,8 +11,8 @@ public:
     IndexBufferObject();
     ~IndexBufferObject();
 
-    IndexBufferObject(const IndexBufferObject &) = delete;
-    IndexBufferObject &operator=(const IndexBufferObject &) = delete;
+    // IndexBufferObject(const IndexBufferObject &) = delete;
+    // IndexBufferObject &operator=(const IndexBufferObject &) = delete;
 
     void create(const unsigned int *data, unsigned int size);
     void destroy();

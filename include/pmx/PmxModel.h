@@ -75,11 +75,6 @@ namespace pmx
         float edgeScale;
     };
 
-    struct Texture
-    {
-        std::string path;
-    };
-
     struct Material
     {
         std::string name;
@@ -103,10 +98,10 @@ namespace pmx
         int32_t diffuseTexId;
         int32_t sphereTexId;
         uint8_t sphereMode;
-        //0: disabled
-        //1: mul
-        //2: add
-        //3: subtexture
+        // 0: disabled
+        // 1: mul
+        // 2: add
+        // 3: subtexture
 
         uint8_t sharedToonFlag;
         int32_t toonTexId;
@@ -120,8 +115,12 @@ namespace pmx
         ModelInfo info;
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
+        std::vector<std::string> texturePath;
+        std::vector<Material> materials;
+
         void loadFromFile(const std::string &filename);
         void freadVertex(Vertex &vert, FILE *fp);
+        void freadMaterial(Material &mat, FILE *fp);
     };
 
 }

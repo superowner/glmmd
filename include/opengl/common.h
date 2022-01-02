@@ -4,4 +4,5 @@
 #include <opengl/VertexArrayObject.h>
 #include <opengl/IndexBufferObject.h>
 #include <opengl/Shader.h>
+#include <opengl/Texture2D.h>
 #endif
