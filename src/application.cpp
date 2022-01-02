@@ -27,7 +27,7 @@ GLFWwindow *initWindow();
 int main(int argc, char *argv[])
 {
     pmx::Model model;
-    model.loadFromFile(projRootAbs + "res/models/HakureiReimu0.958_Sheep3D/reimu_Sheep3D_0.958.pmx");
+    model.loadFromFile(projRootAbs + "res/models/DIYUSI/DIYUSI.pmx");
 
     GLFWwindow *window = initWindow();
     if (window == nullptr)
