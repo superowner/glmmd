@@ -46,8 +46,22 @@ float calcShadow()
     projCoords = projCoords * 0.5 + 0.5;
     float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
-    float bias = 0.005;
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    if (currentDepth > 1.0)
+    return 0;
+    float bias = max(0.005 * (1.0 - dot(norm, mainLight.dir)), 0.001);
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+
+    float shadow = 0;
+    int kernelRadius = 0;
+    for (int x = -kernelRadius; x <= kernelRadius; ++x)
+    {
+        for (int y = -kernelRadius; y <= kernelRadius; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += (currentDepth - bias > pcfDepth) ? 1.0 : 0.0;
+        }
+    }
+    shadow /= (2.0 * kernelRadius + 1.0) * (2.0 * kernelRadius + 1.0);
     return shadow;
 }
 
@@ -68,11 +82,9 @@ void main()
     if (opacity < 0.01) discard;
 
     float shadow = calcShadow();
-    //shadow = max(shadow, 0.5 - 0.5 * dot(norm, mainLight.dir));
-
     vec3 toonShadow = vec3(1.0, 1.0, 1.0);
     if (mat.hasToon > 0)
-    toonShadow = texture(mat.toonTex, vec2(0.5, shadow*0.99+0.005)).xyz;
+    toonShadow = texture(mat.toonTex, vec2(0.5, shadow*0.99)).xyz;
 
     vec3 _ambient = mainLight.ambientLight * mat.ambientColor;
     vec3 _diffuse = mainLight.diffuseLight * toonShadow;
@@ -89,7 +101,7 @@ void main()
         }
         result = texColor.xyz * (_ambient + _diffuse) + _specular;
     }
-    else 
+    else //if (mat.sphereTexMode < 3)
     {
         vec3 upVec = vec3(0.0, 1.0, 0.0);
         vec3 uAxis = normalize(cross(upVec, norm));
@@ -107,6 +119,5 @@ void main()
             opacity *= _specular.a;
         }
     }
-    
     FragColor = vec4(result, opacity);
 }

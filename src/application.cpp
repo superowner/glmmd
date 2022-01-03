@@ -51,7 +51,8 @@ int main(int argc, char *argv[])
         mainScene.init(SCR_WIDTH, SCR_HEIGHT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
 
         pmx::Model model;
-        model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
+        // model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
+        model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
         Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
         Shader depthShader(projRootDir + "res/shaders/depth_vert.shader", projRootDir + "res/shaders/depth_frag.shader");
         PmxModelRenderer renderer(&model, &shader, &depthShader);

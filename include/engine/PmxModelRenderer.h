@@ -16,6 +16,7 @@ private:
 
 public:
     PmxModelRenderer(pmx::Model *, Shader *, Shader *);
+    void onUpdate(float deltaTime) override;
     void onRender() override;
     void onRenderShadowMap() override;
 };
