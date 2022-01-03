@@ -11,6 +11,7 @@
 
 #include <engine/PmxModelRenderer.h>
 #include <engine/Scene.h>
+#include <engine/OffscreenRenderer.h>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -18,7 +19,7 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const std::string projRootAbs("D:/Dev/cpp/glmmd/");
+const std::string projRootAbs("../");
 
 Scene mainScene;
 
@@ -26,9 +27,6 @@ GLFWwindow *initWindow();
 
 int main(int argc, char *argv[])
 {
-    pmx::Model model;
-    model.loadFromFile(projRootAbs + "res/models/DIYUSI/DIYUSI.pmx");
-
     GLFWwindow *window = initWindow();
     if (window == nullptr)
         return -1;
@@ -41,26 +39,37 @@ int main(int argc, char *argv[])
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     {
+
         ImGui::CreateContext();
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         const char *glsl_version = "#version 130";
         ImGui_ImplOpenGL3_Init(glsl_version);
         ImGui::StyleColorsDark();
 
+        pmx::Model model;
+        model.loadFromFile(projRootAbs + "res/models/DIYUSI/DIYUSI.pmx");
+
         Shader shader(projRootAbs + "res/shaders/basic_vert.shader", projRootAbs + "res/shaders/basic_frag.shader");
-        PmxModelRenderer renderer(&model);
+        PmxModelRenderer renderer(&model, &shader);
 
         mainScene.eventQueue.pushWindowResize(SCR_WIDTH, SCR_HEIGHT);
 
         mainScene.addObject(renderer);
         mainScene.addShader(shader);
+
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        OffscreenRenderer offscreenRenderer(SCR_WIDTH, SCR_HEIGHT, projRootAbs + "res/shaders/screen_vert.shader", projRootAbs + "res/shaders/screen_frag.shader");
 
         while (!glfwWindowShouldClose(window))
         {
             processInput(window);
 
-            glClearColor(0.2f, 0.3f, 0.8f, 0.8f);
+            offscreenRenderer.begin();
+
+            glClearColor(0.0f, 0.0f, 0.0f, 0.8f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             ImGui_ImplOpenGL3_NewFrame();
@@ -70,6 +79,7 @@ int main(int argc, char *argv[])
             {
                 mainScene.onUpdate(1.0f / ImGui::GetIO().Framerate);
                 mainScene.onRender();
+                offscreenRenderer.end();
                 ImGui::Begin("Control Panel");
                 ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
                 mainScene.onImGuiRender();

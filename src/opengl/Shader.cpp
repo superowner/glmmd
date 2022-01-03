@@ -84,3 +84,28 @@ void Shader::destroy()
     }
 }
 Shader::~Shader() { destroy(); }
+
+void Shader::setUniform1i(const char *name, int n) const
+{
+    glUniform1i(glGetUniformLocation(m_id, name), n);
+}
+
+void Shader::setUniformMatrix4fv(const char *name, GLsizei count, GLboolean transpose, const glm::mat4 m) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(m_id, name), count, transpose, &m[0][0]);
+}
+
+void Shader::setUniform3fv(const char *name, GLsizei count, const glm::vec3 v) const
+{
+    glUniform3fv(glGetUniformLocation(m_id, name), count, &v.x);
+}
+
+void Shader::setUniform1f(const char *name, float f) const
+{
+    glUniform1f(glGetUniformLocation(m_id, name), f);
+}
+
+void Shader::setUniform4fv(const char *name, GLsizei count, const glm::vec4 v) const
+{
+    glUniform4fv(glGetUniformLocation(m_id, name), count, &v.x);
+}

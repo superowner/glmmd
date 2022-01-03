@@ -5,4 +5,6 @@
 #include <opengl/IndexBufferObject.h>
 #include <opengl/Shader.h>
 #include <opengl/Texture2D.h>
+#include <opengl/FrameBufferObject.h>
+#include <opengl/RenderBufferObject.h>
 #endif

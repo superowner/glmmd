@@ -3,7 +3,11 @@
 VertexArrayObject::VertexArrayObject() : m_id(0) {}
 VertexArrayObject::~VertexArrayObject() { destroy(); }
 
-void VertexArrayObject::create() { glGenVertexArrays(1, &m_id); }
+void VertexArrayObject::create()
+{
+    destroy();
+    glGenVertexArrays(1, &m_id);
+}
 
 void VertexArrayObject::addBuffer(const VertexBufferObject &vbo, const VertexBufferLayout &layout)
 {

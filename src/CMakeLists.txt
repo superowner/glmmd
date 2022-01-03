@@ -14,12 +14,15 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/Camera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/Scene.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/Event.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/OffscreenRenderer.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/CodeConverter.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/VertexBufferObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/IndexBufferObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/VertexArrayObject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/FrameBufferObject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/RenderBufferObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/Shader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/Texture2D.cpp
 
@@ -34,8 +37,11 @@ PRIVATE
     ${PROJECT_SOURCE_DIR}/include/3rdparty
 )
 
+find_package(OpenGL REQUIRED)
+
 target_link_libraries(glmmd
 PRIVATE 
     glfw
     imgui
+    OpenGL::GL
 )

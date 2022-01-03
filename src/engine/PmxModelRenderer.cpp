@@ -1,9 +1,9 @@
 #include <engine/PmxModelRenderer.h>
 
-PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel)
-    : m_pModel(pModel)
+PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader)
+    : m_pModel(pModel), m_pShader(pShader)
 {
-    assert(pModel != nullptr);
+    assert(m_pModel != nullptr && m_pShader != nullptr);
 
     m_VAO.create();
     m_VAO.bind();
@@ -53,11 +53,17 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel)
 
 void PmxModelRenderer::onRender()
 {
+    m_pShader->use();
     m_VAO.bind();
-
+    glCullFace(GL_FRONT);
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
+        if (m_pModel->materials[i].bitFlag & 0x01)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
         m_texList[m_pModel->materials[i].diffuseTexId].bind(0);
+        m_texList[m_pModel->materials[i].sphereTexId].bind(1);
         m_IBOList[i].bind();
         glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
     }

@@ -8,6 +8,7 @@ Texture2D::~Texture2D() { destroy(); }
 
 void Texture2D::create(const std::string &filename)
 {
+    destroy();
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D, m_id);
 
@@ -66,6 +67,19 @@ void Texture2D::create(const std::string &filename)
     stbi_image_free(data);
 }
 
+void Texture2D::create(int width, int height)
+{
+    destroy();
+    glGenTextures(1, &m_id);
+    glBindTexture(GL_TEXTURE_2D, m_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, NULL);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
 void Texture2D::destroy()
 {
     if (m_id != 0)
@@ -85,3 +99,5 @@ void Texture2D::unbind() const
 {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+unsigned int Texture2D::id() const { return m_id; }

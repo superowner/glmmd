@@ -16,9 +16,13 @@ public:
     // Texture2D(const Texture2D &) = delete;
     // Texture2D &operator=(const Texture2D &) = delete;
     void create(const std::string &filename);
+    void create(int width, int height);
+
     void destroy();
     void bind(unsigned int unit) const;
     void unbind() const;
+
+    unsigned int id() const;
 };
 
 #endif
