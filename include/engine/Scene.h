@@ -11,22 +11,29 @@ class Scene
 {
 private:
     Camera m_camera;
-    std::vector<ObjectBase *> m_objectList;
-    std::vector<Shader *> m_shaderList;
     DirectionalLight m_mainLight;
+    std::vector<ObjectBase *> m_objectList;
+    FrameBufferObject m_shadowMap;
+    int m_width;
+    int m_height;
+    int m_shadowMapWidth;
+    int m_shadowMapHeight;
 
 public:
     EventQueue eventQueue;
 
 public:
-    Scene(int width, int height);
+    Scene();
 
+    void init(int width, int height, int shadowMapWidth, int shadowMapHeight);
+
+    void handleEvent(float deltaTime);
     void onUpdate(float deltaTime);
+    void onRenderShadowMap();
     void onRender();
     void onImGuiRender();
 
-    void addShader(Shader &);
-    void addObject(ObjectBase &);
+    void addObject(ObjectBase *pObj);
 };
 
 #endif

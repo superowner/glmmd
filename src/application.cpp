@@ -19,9 +19,12 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 1440;
 const unsigned int SCR_HEIGHT = 960;
 
+const int SHADOW_MAP_WIDTH = 1024;
+const int SHADOW_MAP_HEIGHT = 1024;
+
 const std::string projRootDir("../");
 
-Scene mainScene(SCR_WIDTH, SCR_HEIGHT);
+Scene mainScene;
 
 GLFWwindow *initWindow();
 
@@ -39,20 +42,24 @@ int main(int argc, char *argv[])
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     {
-
         ImGui::CreateContext();
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         const char *glsl_version = "#version 130";
         ImGui_ImplOpenGL3_Init(glsl_version);
         ImGui::StyleColorsDark();
+
+        mainScene.init(SCR_WIDTH, SCR_HEIGHT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
+
         pmx::Model model;
         model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
-        
         Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
-        PmxModelRenderer renderer(&model, &shader);
+        PmxModelRenderer renderer(&model, &shader, nullptr);
+        mainScene.addObject(&renderer);
 
-        mainScene.addObject(renderer);
-        mainScene.addShader(shader);
+        pmx::Model plane;
+        plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
+        PmxModelRenderer planeRenderer(&plane, &shader, nullptr);
+        mainScene.addObject(&planeRenderer);
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);

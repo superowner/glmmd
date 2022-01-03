@@ -1,5 +1,5 @@
-#include <opengl/RenderBufferObject.h>
 #include <glad/glad.h>
+#include <opengl/RenderBufferObject.h>
 RenderBufferObject::RenderBufferObject() : m_id(0){};
 RenderBufferObject::~RenderBufferObject() { destroy(); };
 

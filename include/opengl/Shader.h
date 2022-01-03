@@ -21,10 +21,10 @@ public:
     void destroy();
 
     void setUniform1i(const char *name, int n) const;
-    void setUniformMatrix4fv(const char *name, GLsizei count, GLboolean transpose, const glm::mat4 m) const;
-    void setUniform3fv(const char *name, GLsizei count, const glm::vec3 v) const;
+    void setUniformMatrix4fv(const char *name, unsigned int count, bool transpose, const glm::mat4 m) const;
+    void setUniform3fv(const char *name, unsigned int count, const glm::vec3 v) const;
     void setUniform1f(const char *name, float f) const;
-    void setUniform4fv(const char *name, GLsizei count, const glm::vec4 v) const;
+    void setUniform4fv(const char *name, unsigned int count, const glm::vec4 v) const;
 };
 
 #endif

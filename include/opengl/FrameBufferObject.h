@@ -16,6 +16,7 @@ public:
     ~FrameBufferObject();
 
     void create(int width, int height);
+    void createDepthBuffer(int width, int height);
     void destroy();
 
     void bind() const;

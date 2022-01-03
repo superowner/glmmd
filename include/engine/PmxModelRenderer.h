@@ -8,7 +8,6 @@ class PmxModelRenderer : public ObjectBase
 {
 private:
     pmx::Model *m_pModel;
-    Shader *m_pShader;
     VertexArrayObject m_VAO;
     VertexBufferObject m_VBO;
     std::vector<IndexBufferObject> m_IBOList;
@@ -16,8 +15,9 @@ private:
     Texture2D m_defaultToon[10];
 
 public:
-    PmxModelRenderer(pmx::Model *, Shader *);
+    PmxModelRenderer(pmx::Model *, Shader *, Shader *);
     void onRender() override;
+    void onRenderShadowMap() override;
 };
 
 #endif
