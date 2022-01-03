@@ -11,9 +11,11 @@ class Scene
 {
 private:
     Camera m_camera;
+    Camera m_lightCamera;
+    glm::mat4 m_lightSpaceMatrix;
+    FrameBufferObject m_shadowMap;
     DirectionalLight m_mainLight;
     std::vector<ObjectBase *> m_objectList;
-    FrameBufferObject m_shadowMap;
     int m_width;
     int m_height;
     int m_shadowMapWidth;

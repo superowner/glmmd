@@ -3,6 +3,7 @@
 in vec3 norm;
 in vec2 texCoord;
 in vec3 fragPos;
+in vec4 fragPosLightSpace;
 
 struct Material
 {
@@ -34,19 +35,25 @@ struct DirectionalLight
 uniform Material mat;
 uniform DirectionalLight mainLight;
 uniform vec3 viewPos;
+uniform vec3 lightPos;
+uniform sampler2D shadowMap;
 
 out vec4 FragColor;
+
+float calcShadow()
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    return shadow;
+}
 
 void main()
 {
     vec3 result;
-
-    float shadow = 0.0;
-    shadow = max(shadow, 0.5 - 0.5 * dot(norm, mainLight.dir));
-
-    vec3 toonShadow = vec3(1.0, 1.0, 1.0);
-    if (mat.hasToon > 0)
-    toonShadow = texture(mat.toonTex, vec2(0.5, shadow)).xyz;
 
     vec4 texColor;
     if (mat.hasDiffuseTex > 0)
@@ -58,6 +65,14 @@ void main()
         texColor = mat.diffuseColor;
     }
     float opacity = texColor.a;
+    if (opacity < 0.01) discard;
+
+    float shadow = calcShadow();
+    //shadow = max(shadow, 0.5 - 0.5 * dot(norm, mainLight.dir));
+
+    vec3 toonShadow = vec3(1.0, 1.0, 1.0);
+    if (mat.hasToon > 0)
+    toonShadow = texture(mat.toonTex, vec2(0.5, shadow*0.99+0.005)).xyz;
 
     vec3 _ambient = mainLight.ambientLight * mat.ambientColor;
     vec3 _diffuse = mainLight.diffuseLight * toonShadow;
@@ -92,5 +107,6 @@ void main()
             opacity *= _specular.a;
         }
     }
+    
     FragColor = vec4(result, opacity);
 }

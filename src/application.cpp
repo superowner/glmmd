@@ -53,12 +53,14 @@ int main(int argc, char *argv[])
         pmx::Model model;
         model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
         Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
-        PmxModelRenderer renderer(&model, &shader, nullptr);
+        Shader depthShader(projRootDir + "res/shaders/depth_vert.shader", projRootDir + "res/shaders/depth_frag.shader");
+        PmxModelRenderer renderer(&model, &shader, &depthShader);
         mainScene.addObject(&renderer);
 
         pmx::Model plane;
         plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
-        PmxModelRenderer planeRenderer(&plane, &shader, nullptr);
+        Shader planeShader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
+        PmxModelRenderer planeRenderer(&plane, &shader, &depthShader);
         mainScene.addObject(&planeRenderer);
 
         glEnable(GL_DEPTH_TEST);
@@ -71,17 +73,14 @@ int main(int argc, char *argv[])
         {
             processInput(window);
 
-            offscreenRenderer.begin();
-
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
             {
                 mainScene.onUpdate(1.0f / ImGui::GetIO().Framerate);
+                mainScene.onRenderShadowMap();
+                offscreenRenderer.begin();
                 mainScene.onRender();
                 offscreenRenderer.end();
                 ImGui::Begin("Control Panel");

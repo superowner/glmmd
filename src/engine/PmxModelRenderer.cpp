@@ -58,7 +58,16 @@ void PmxModelRenderer::onRenderShadowMap()
 {
     m_depthShader->use();
     m_VAO.bind();
-
+    for (unsigned int i = 0; i < m_IBOList.size(); ++i)
+    {
+        const auto &mat = m_pModel->materials[i];
+        if (mat.bitFlag & 0x01)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
+        m_IBOList[i].bind();
+        glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
+    }
 }
 
 void PmxModelRenderer::onRender()

@@ -1,7 +1,7 @@
 #include <engine/Scene.h>
 #include <imgui/imgui.h>
 #include <GLFW/glfw3.h>
-
+#include <iostream>
 Scene::Scene() {}
 
 void Scene::init(int width, int height, int shadowMapWidth, int shadowMapHeight)
@@ -57,19 +57,27 @@ void Scene::onUpdate(float deltaTime)
 
 void Scene::onRenderShadowMap()
 {
-    float n = 1.0f, f = 8.0f;
-    Camera lightCamera(0.0f, n, f, -f * 0.5f * m_mainLight.dir, glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 lightProjection = lightCamera.getOrthoProjMatrix(-10.0f, 10.0f, -10.0f, 10.0f);
-    glm::mat4 lightView = lightCamera.getViewMatrix();
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+    glViewport(0, 0, m_shadowMapWidth, m_shadowMapHeight);
+    m_shadowMap.bind();
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
+    float n = 1.0f, f = 20.0f;
+    m_lightCamera = Camera(0.0f, n, f * 2, -f * m_mainLight.dir, glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 lightProjection = m_lightCamera.getOrthoProjMatrix(-25.0f, 25.0f, -25.0f, 25.0f);
+    glm::mat4 lightView = m_lightCamera.getViewMatrix();
+    m_lightSpaceMatrix = lightProjection * lightView;
     for (auto &pObj : m_objectList)
     {
         if (pObj->depthShader() != nullptr)
         {
             pObj->depthShader()->use();
-            pObj->depthShader()->setUniformMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, lightSpaceMatrix);
+            pObj->depthShader()->setUniformMatrix4fv("model", 1, GL_FALSE, glm::mat4(1.0f));
+            pObj->depthShader()->setUniformMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, m_lightSpaceMatrix);
+            pObj->onRenderShadowMap();
         }
     }
+    m_shadowMap.unbind();
 }
 
 void Scene::onRender()
@@ -81,6 +89,11 @@ void Scene::onRender()
         glm::mat4 view = m_camera.getViewMatrix();
         glm::mat4 projection = m_camera.getProjMatrix();
         pObj->mainShader()->use();
+
+        pObj->mainShader()->setUniform3fv("lightPos", 1, m_lightCamera.pos);
+        pObj->mainShader()->setUniformMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, m_lightSpaceMatrix);
+        m_shadowMap.tex().bind(9);
+        pObj->mainShader()->setUniform1i("shadowMap", 9);
 
         pObj->mainShader()->setUniformMatrix4fv("model", 1, GL_FALSE, model);
         pObj->mainShader()->setUniformMatrix4fv("view", 1, GL_FALSE, view);
