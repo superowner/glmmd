@@ -6,6 +6,8 @@
 class OffscreenRenderer
 {
 private:
+    int m_width;
+    int m_height;
     FrameBufferObject m_FBO;
     VertexArrayObject m_quadVAO;
     VertexBufferObject m_quadVBO;
@@ -16,7 +18,7 @@ public:
     ~OffscreenRenderer();
 
     void begin() const;
-    void end() const;
+    void end() const; 
 };
 
 #endif

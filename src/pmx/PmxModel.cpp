@@ -178,6 +178,7 @@ namespace pmx
         uint32_t materialCount;
         freadUint(materialCount, 4, fp);
         materials.resize(materialCount);
+
         for (auto &m : materials)
             freadMaterial(m, fp);
         fclose(fp);

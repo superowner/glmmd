@@ -92,7 +92,7 @@ namespace pmx
         // 0x08: self shadow
         // 0x10: edge
 
-        glm::vec3 edgeColor;
+        glm::vec4 edgeColor;
         float edgeSize;
 
         int32_t diffuseTexId;

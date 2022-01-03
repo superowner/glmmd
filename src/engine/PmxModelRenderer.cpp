@@ -1,5 +1,4 @@
 #include <engine/PmxModelRenderer.h>
-
 PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader)
     : m_pModel(pModel), m_pShader(pShader)
 {
@@ -49,21 +48,65 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader)
     m_texList.resize(m_pModel->texturePath.size());
     for (unsigned int i = 0; i < m_texList.size(); ++i)
         m_texList[i].create(m_pModel->texturePath[i]);
+
+    // load default toon
+    for (unsigned int i = 0; i < 10; ++i)
+        m_defaultToon[i].create(std::string("../res/toon/toon") + (i < 9 ? "0" : "") + std::to_string(i + 1) + ".bmp");
 }
 
 void PmxModelRenderer::onRender()
 {
     m_pShader->use();
     m_VAO.bind();
-    glCullFace(GL_FRONT);
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
-        if (m_pModel->materials[i].bitFlag & 0x01)
+        const auto &mat = m_pModel->materials[i];
+        if (mat.bitFlag & 0x01)
             glEnable(GL_CULL_FACE);
         else
             glDisable(GL_CULL_FACE);
-        m_texList[m_pModel->materials[i].diffuseTexId].bind(0);
-        m_texList[m_pModel->materials[i].sphereTexId].bind(1);
+
+        m_pShader->setUniform4fv("mat.diffuseColor", 1, mat.diffuse);
+        m_pShader->setUniform3fv("mat.specularColor", 1, mat.specular);
+        m_pShader->setUniform1f("mat.specIntensity", mat.specIntensity);
+        m_pShader->setUniform3fv("mat.ambientColor", 1, mat.ambient);
+
+        m_pShader->setUniform4fv("mat.diffuse", 1, mat.edgeColor);
+        m_pShader->setUniform1f("mat.specularIntensity", mat.edgeSize);
+
+        if (0 <= mat.diffuseTexId && mat.diffuseTexId < m_texList.size())
+        {
+            m_pShader->setUniform1i("mat.hasDiffuseTex", 1);
+            m_texList[mat.diffuseTexId].bind(0);
+            m_pShader->setUniform1i("mat.diffuseTex", 0);
+        }
+        else
+            m_pShader->setUniform1i("mat.hasDiffuseTex", 0);
+
+        if (0 <= mat.sphereTexId && mat.sphereTexId < m_texList.size())
+        {
+            m_pShader->setUniform1i("mat.sphereTexMode", mat.sphereMode);
+            m_texList[mat.sphereTexId].bind(1);
+            m_pShader->setUniform1i("mat.sphereTex", 1);
+        }
+        else
+            m_pShader->setUniform1i("mat.sphereTexMode", 0);
+
+        if (mat.sharedToonFlag)
+        {
+            m_pShader->setUniform1i("mat.hasToon", 1);
+            m_defaultToon[mat.toonTexId].bind(2);
+            m_pShader->setUniform1i("mat.toonTex", 2);
+        }
+        else if (0 <= mat.toonTexId && mat.toonTexId < m_texList.size())
+        {
+            m_pShader->setUniform1i("mat.hasToon", 1);
+            m_texList[mat.toonTexId].bind(2);
+            m_pShader->setUniform1i("mat.toonTex", 2);
+        }
+        else
+            m_pShader->setUniform1i("mat.hasToon", 0);
+
         m_IBOList[i].bind();
         glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
     }

@@ -16,12 +16,12 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1440;
+const unsigned int SCR_HEIGHT = 960;
 
-const std::string projRootAbs("../");
+const std::string projRootDir("../");
 
-Scene mainScene;
+Scene mainScene(SCR_WIDTH, SCR_HEIGHT);
 
 GLFWwindow *initWindow();
 
@@ -45,14 +45,11 @@ int main(int argc, char *argv[])
         const char *glsl_version = "#version 130";
         ImGui_ImplOpenGL3_Init(glsl_version);
         ImGui::StyleColorsDark();
-
         pmx::Model model;
-        model.loadFromFile(projRootAbs + "res/models/DIYUSI/DIYUSI.pmx");
-
-        Shader shader(projRootAbs + "res/shaders/basic_vert.shader", projRootAbs + "res/shaders/basic_frag.shader");
+        model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
+        
+        Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
         PmxModelRenderer renderer(&model, &shader);
-
-        mainScene.eventQueue.pushWindowResize(SCR_WIDTH, SCR_HEIGHT);
 
         mainScene.addObject(renderer);
         mainScene.addShader(shader);
@@ -61,7 +58,7 @@ int main(int argc, char *argv[])
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_FRAMEBUFFER_SRGB);
-        OffscreenRenderer offscreenRenderer(SCR_WIDTH, SCR_HEIGHT, projRootAbs + "res/shaders/screen_vert.shader", projRootAbs + "res/shaders/screen_frag.shader");
+        OffscreenRenderer offscreenRenderer(SCR_WIDTH, SCR_HEIGHT, projRootDir + "res/shaders/screen_vert.shader", projRootDir + "res/shaders/screen_frag.shader");
 
         while (!glfwWindowShouldClose(window))
         {
@@ -69,7 +66,7 @@ int main(int argc, char *argv[])
 
             offscreenRenderer.begin();
 
-            glClearColor(0.0f, 0.0f, 0.0f, 0.8f);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             ImGui_ImplOpenGL3_NewFrame();
@@ -103,8 +100,7 @@ GLFWwindow *initWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -138,6 +134,5 @@ void processInput(GLFWwindow *window)
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
-    mainScene.eventQueue.pushWindowResize(width, height);
     glViewport(0, 0, width, height);
 }

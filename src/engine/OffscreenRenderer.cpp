@@ -1,6 +1,6 @@
 #include <engine/OffscreenRenderer.h>
 OffscreenRenderer::OffscreenRenderer(int width, int height, const std::string &scrVertShaderPath, const std::string &scrFragShaderPath)
-    : m_screenShader(scrVertShaderPath, scrFragShaderPath)
+    : m_width(width), m_height(height), m_screenShader(scrVertShaderPath, scrFragShaderPath)
 {
     float quadVertices[] = {
         -1.0f, 1.0f, 0.0f, 1.0f,

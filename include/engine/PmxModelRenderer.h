@@ -13,6 +13,7 @@ private:
     VertexBufferObject m_VBO;
     std::vector<IndexBufferObject> m_IBOList;
     std::vector<Texture2D> m_texList;
+    Texture2D m_defaultToon[10];
 
 public:
     PmxModelRenderer(pmx::Model *, Shader *);
