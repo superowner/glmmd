@@ -117,6 +117,9 @@ void Scene::onImGuiRender()
     ImGui::SliderFloat("Main Light Dir.z", &m_mainLight.dir.z, -1.0f, 1.0f);
     ImGui::ColorEdit3("Main Light Diffuse", m_mainLight.diffuse);
     ImGui::ColorEdit3("Main Light Ambient", m_mainLight.ambient);
+
+    for (auto &pObj : m_objectList)
+        pObj->onImGuiRender();
 }
 
 void Scene::addObject(ObjectBase *pObj)

@@ -48,11 +48,11 @@ float calcShadow()
     float currentDepth = projCoords.z;
     if (currentDepth > 1.0)
     return 0;
-    float bias = max(0.005 * (1.0 - dot(norm, mainLight.dir)), 0.001);
+    float bias = max(0.002 * (1.0 - dot(norm, mainLight.dir)), 0.001);
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
 
     float shadow = 0;
-    int kernelRadius = 0;
+    int kernelRadius =0;
     for (int x = -kernelRadius; x <= kernelRadius; ++x)
     {
         for (int y = -kernelRadius; y <= kernelRadius; ++y)

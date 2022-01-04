@@ -14,11 +14,14 @@ private:
     std::vector<Texture2D> m_texList;
     Texture2D m_defaultToon[10];
 
+    float m_rotY;
+
 public:
     PmxModelRenderer(pmx::Model *, Shader *, Shader *);
     void onUpdate(float deltaTime) override;
     void onRender() override;
     void onRenderShadowMap() override;
+    void onImGuiRender() override;
 };
 
 #endif

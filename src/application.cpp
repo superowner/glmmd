@@ -9,7 +9,7 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
-#include <engine/PmxModelRenderer.h>
+#include <pmx/PmxModelRenderer.h>
 #include <engine/Scene.h>
 #include <engine/OffscreenRenderer.h>
 
@@ -19,8 +19,8 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 1440;
 const unsigned int SCR_HEIGHT = 960;
 
-const int SHADOW_MAP_WIDTH = 1024;
-const int SHADOW_MAP_HEIGHT = 1024;
+const int SHADOW_MAP_WIDTH = 2048;
+const int SHADOW_MAP_HEIGHT = 2048;
 
 const std::string projRootDir("../");
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
                 offscreenRenderer.begin();
                 mainScene.onRender();
                 offscreenRenderer.end();
-                ImGui::Begin("Control Panel");
+                ImGui::Begin("Scene Control Panel");
                 ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
                 mainScene.onImGuiRender();
                 ImGui::End();

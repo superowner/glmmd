@@ -1,14 +1,16 @@
-#include <engine/PmxModelRenderer.h>
+#include <pmx/PmxModelRenderer.h>
+#include <imgui/imgui.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 void PmxModelRenderer::onUpdate(float deltaTime)
 {
-    
 }
 
 void PmxModelRenderer::onRenderShadowMap()
 {
     m_depthShader->use();
     m_VAO.bind();
+
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
         const auto &mat = m_pModel->materials[i];
@@ -79,7 +81,7 @@ void PmxModelRenderer::onRender()
     }
 }
 PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader)
-    : ObjectBase(pShader, pDepthShader), m_pModel(pModel)
+    : ObjectBase(pShader, pDepthShader), m_pModel(pModel), m_rotY(0.0f)
 {
     assert(m_pModel != nullptr);
 
@@ -131,4 +133,8 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
     // load default toon
     for (unsigned int i = 0; i < 10; ++i)
         m_defaultToon[i].createFromFile(std::string("../res/toon/toon") + (i < 9 ? "0" : "") + std::to_string(i + 1) + ".bmp");
+}
+
+void PmxModelRenderer::onImGuiRender()
+{
 }
