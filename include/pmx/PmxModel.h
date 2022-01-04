@@ -29,17 +29,6 @@ TextBuf: 4 + buffer_size
 
 namespace pmx
 {
-    enum ByteSizeIndex
-    {
-        ENCODING = 0,
-        ADDITIONAL_UV = 1,
-        VERT_IDX_SIZE = 2,
-        TEX_IDX_SIZE = 3,
-        MAT_IDX_SIZE = 4,
-        BONE_IDX_SIZE = 5,
-        MORPH_IDX_SIZE = 6,
-        RIGIDBODY_IDX_SIZE = 7,
-    };
     struct ModelInfo
     {
         char header[5];
@@ -55,10 +44,20 @@ namespace pmx
         //[6]: Morph Index Size       | 1,2,4
         //[7]: Rigidbody Index Size   | 1,2,4
 
+        // utf8
         std::string modelName;
         std::string modelNameEN;
         std::string comment;
         std::string commentEN;
+
+        inline bool isUtf8() { return byteSize[0]; }
+        inline uint8_t additionalUVCount() { return byteSize[1]; }
+        inline uint8_t vertexIndexSize() { return byteSize[2]; }
+        inline uint8_t textureIndexSize() { return byteSize[3]; }
+        inline uint8_t materialIndexSize() { return byteSize[4]; }
+        inline uint8_t boneIndexSize() { return byteSize[5]; }
+        inline uint8_t morphIndexSize() { return byteSize[6]; }
+        inline uint8_t rigidbodyIndexSize() { return byteSize[7]; }
     };
 
     struct Vertex
@@ -110,6 +109,61 @@ namespace pmx
         uint32_t indexCount;
     };
 
+    struct IKLink
+    {
+        int32_t index;
+        uint8_t angleLimitOn;
+        glm::vec3 minAngle;
+        glm::vec3 maxAngle;
+    };
+
+    struct Bone
+    {
+        std::string name;   // utf8
+        std::string nameEN; // utf8
+
+        glm::vec3 position;
+        int32_t parentIndex;
+        int32_t deformOrder;
+
+        uint16_t bitFlag;
+        // 0x0001 : heading representing method | 0: coordinate 1: another bone
+        // 0x0002 : allow rotation
+        // 0x0004 : allow translation
+        // 0x0008 : display
+        // 0x0010 : allow operation
+        // 0x0020 : IK
+
+        // 0x0080 : local attribution | 0: user deformation / IK link / multi attribution 1:parent local deformation
+        // 0x0100 : rotation attribution
+        // 0x0200 : translation attribution
+
+        // 0x0400 : lock axis
+        // 0x0800 : local axis
+
+        // 0x1000 : deformation after physics
+        // 0x2000 : external parent deformation
+
+        int32_t endBoneIndex;
+        glm::vec3 endPos;
+
+        int32_t rotAttribIndex;
+        float rotAttribWeight;
+        int32_t transAttribIndex;
+        float transAttribWeight;
+
+        glm::vec3 lockedAxis;
+        glm::vec3 localAxisX;
+        glm::vec3 localAxisZ;
+
+        int32_t extParentKey;
+
+        int32_t IK_targetBoneIndex;
+        uint32_t IK_loopCount;
+        float IK_limitAngle;
+        std::vector<IKLink> IK_linkList;
+    };
+
     struct Model
     {
         ModelInfo info;
@@ -117,10 +171,12 @@ namespace pmx
         std::vector<uint32_t> indices;
         std::vector<std::string> texturePath;
         std::vector<Material> materials;
+        std::vector<Bone> bones;
 
         void loadFromFile(const std::string &filename);
         void freadVertex(Vertex &vert, FILE *fp);
         void freadMaterial(Material &mat, FILE *fp);
+        void freadBone(Bone &bone, FILE *fp);
     };
 
 }

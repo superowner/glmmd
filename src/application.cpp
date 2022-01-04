@@ -10,6 +10,8 @@
 #include <imgui/imgui_impl_opengl3.h>
 
 #include <pmx/PmxModelRenderer.h>
+#include <pmx/VmdData.h>
+
 #include <engine/Scene.h>
 #include <engine/OffscreenRenderer.h>
 
@@ -50,6 +52,9 @@ int main(int argc, char *argv[])
 
         mainScene.init(SCR_WIDTH, SCR_HEIGHT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
 
+        VmdData motion;
+        motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
+
         pmx::Model model;
         // model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
         model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
@@ -81,9 +86,15 @@ int main(int argc, char *argv[])
             {
                 mainScene.onUpdate(1.0f / ImGui::GetIO().Framerate);
                 mainScene.onRenderShadowMap();
+
                 offscreenRenderer.begin();
+                // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                // glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+                // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                // glEnable(GL_DEPTH_TEST);
                 mainScene.onRender();
                 offscreenRenderer.end();
+
                 ImGui::Begin("Scene Control Panel");
                 ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
                 mainScene.onImGuiRender();

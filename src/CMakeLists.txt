@@ -9,6 +9,7 @@ PRIVATE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/pmx/PmxModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pmx/PmxModelRenderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pmx/VmdData.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/ObjectBase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/Camera.cpp

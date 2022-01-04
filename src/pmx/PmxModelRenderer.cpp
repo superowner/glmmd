@@ -81,7 +81,7 @@ void PmxModelRenderer::onRender()
     }
 }
 PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader)
-    : ObjectBase(pShader, pDepthShader), m_pModel(pModel), m_rotY(0.0f)
+    : ObjectBase(pShader, pDepthShader), m_pModel(pModel)
 {
     assert(m_pModel != nullptr);
 

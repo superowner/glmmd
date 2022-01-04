@@ -2,6 +2,7 @@
 #include <pmx/PmxModel.h>
 #include <utils/CodeConverter.h>
 #include <stdexcept>
+#include <pmx/FileHelper.h>
 
 #define PMX_LOADER_THROW(cond, msg)        \
     do                                     \
@@ -12,25 +13,6 @@
 
 namespace pmx
 {
-
-    template <size_t N>
-    void freadFloat(void *p, FILE *fp)
-    {
-        fread(p, sizeof(float), N, fp);
-    }
-
-    template <typename T>
-    void freadUint(T &n, size_t size, FILE *fp)
-    {
-        fread(&n, size, 1, fp);
-    }
-
-    template <typename T>
-    void freadInt(T &n, size_t size, FILE *fp)
-    {
-        fread(&n, size, 1, fp);
-    }
-
     void freadTextBuf(std::string &buf, FILE *fp)
     {
         uint32_t bufSize;
@@ -50,7 +32,7 @@ namespace pmx
         freadFloat<3>(&vert.normal, fp);
         freadFloat<2>(&vert.uv, fp);
 
-        auto additionalUVCount = info.byteSize[ADDITIONAL_UV];
+        auto additionalUVCount = info.additionalUVCount();
         if (additionalUVCount)
         {
             vert.additionalUV.resize(additionalUVCount);
@@ -59,7 +41,7 @@ namespace pmx
         }
 
         freadUint(vert.deformMethod, 1, fp);
-        auto idxSize = info.byteSize[BONE_IDX_SIZE];
+        auto idxSize = info.boneIndexSize();
         switch (vert.deformMethod)
         {
         case 0: // BDEF1
@@ -69,7 +51,7 @@ namespace pmx
         case 1: // BDEF2
             freadInt(vert.bindedBone[0], idxSize, fp);
             freadInt(vert.bindedBone[1], idxSize, fp);
-            freadFloat<1>(&vert.weights.x, fp);
+            freadFloat(&vert.weights.x, fp);
             vert.weights.y = 1.0f - vert.weights.x;
             break;
         case 2: // BDEF4
@@ -83,7 +65,7 @@ namespace pmx
         {
             freadInt(vert.bindedBone[0], idxSize, fp);
             freadInt(vert.bindedBone[1], idxSize, fp);
-            freadFloat<1>(&vert.weights.x, fp);
+            freadFloat(&vert.weights.x, fp);
             vert.weights.y = 1.0f - vert.weights.x;
             glm::vec3 tmp;
             freadFloat<3>(&tmp, fp);
@@ -95,7 +77,7 @@ namespace pmx
             PMX_LOADER_THROW(1, "failed to load model");
         }
 
-        freadFloat<1>(&vert.edgeScale, fp);
+        freadFloat(&vert.edgeScale, fp);
     }
 
     void Model::freadMaterial(Material &mat, FILE *fp)
@@ -104,21 +86,81 @@ namespace pmx
         freadTextBuf(mat.nameEN, fp);
         freadFloat<4>(&mat.diffuse, fp);
         freadFloat<3>(&mat.specular, fp);
-        freadFloat<1>(&mat.specIntensity, fp);
+        freadFloat(&mat.specIntensity, fp);
         freadFloat<3>(&mat.ambient, fp);
         fread(&mat.bitFlag, 1, 1, fp);
         freadFloat<4>(&mat.edgeColor, fp);
-        freadFloat<1>(&mat.edgeSize, fp);
-        freadInt(mat.diffuseTexId, info.byteSize[TEX_IDX_SIZE], fp);
-        freadInt(mat.sphereTexId, info.byteSize[TEX_IDX_SIZE], fp);
+        freadFloat(&mat.edgeSize, fp);
+        freadInt(mat.diffuseTexId, info.textureIndexSize(), fp);
+        freadInt(mat.sphereTexId, info.textureIndexSize(), fp);
         fread(&mat.sphereMode, 1, 1, fp);
         fread(&mat.sharedToonFlag, 1, 1, fp);
         if (mat.sharedToonFlag)
             fread(&mat.toonTexId, 1, 1, fp);
         else
-            freadInt(mat.toonTexId, info.byteSize[TEX_IDX_SIZE], fp);
+            freadInt(mat.toonTexId, info.textureIndexSize(), fp);
         freadTextBuf(mat.memo, fp);
         freadUint(mat.indexCount, 4, fp);
+    }
+
+    void Model::freadBone(Bone &bone, FILE *fp)
+    {
+        freadTextBuf(bone.name, fp);
+        freadTextBuf(bone.nameEN, fp);
+        if (!info.isUtf8())
+        {
+            bone.name = UTF16_LE_to_UTF8(bone.name);
+            bone.nameEN = UTF16_LE_to_UTF8(bone.nameEN);
+        }
+
+        freadFloat<3>(&bone.position, fp);
+        freadInt(bone.parentIndex, info.boneIndexSize(), fp);
+        freadInt(bone.deformOrder, 4, fp);
+        freadUint(bone.bitFlag, 2, fp);
+        if (bone.bitFlag & 0x0001)
+            freadInt(bone.endBoneIndex, info.boneIndexSize(), fp);
+        else
+            freadFloat<3>(&bone.endPos, fp);
+
+        if (bone.bitFlag & 0x0100)
+        {
+            freadInt(bone.rotAttribIndex, info.boneIndexSize(), fp);
+            freadFloat(&bone.rotAttribWeight, fp);
+        }
+        if (bone.bitFlag & 0x0200)
+        {
+            freadInt(bone.transAttribIndex, info.boneIndexSize(), fp);
+            freadFloat(&bone.transAttribWeight, fp);
+        }
+        if (bone.bitFlag & 0x0400)
+            freadFloat<3>(&bone.lockedAxis, fp);
+        if (bone.bitFlag & 0x0800)
+        {
+            freadFloat<3>(&bone.localAxisX, fp);
+            freadFloat<3>(&bone.localAxisZ, fp);
+        }
+        if (bone.bitFlag & 0x2000)
+            freadInt(bone.extParentKey, 4, fp);
+        if (bone.bitFlag & 0x0020)
+        {
+            freadInt(bone.IK_targetBoneIndex, info.boneIndexSize(), fp);
+            freadUint(bone.IK_loopCount, 4, fp);
+            freadFloat(&bone.IK_limitAngle, fp);
+
+            uint32_t IK_linkCount;
+            freadUint(IK_linkCount, 4, fp);
+            bone.IK_linkList.resize(IK_linkCount);
+            for (auto &l : bone.IK_linkList)
+            {
+                freadInt(l.index, info.boneIndexSize(), fp);
+                freadUint(l.angleLimitOn, 1, fp);
+                if (l.angleLimitOn)
+                {
+                    freadFloat<3>(&l.minAngle, fp);
+                    freadFloat<3>(&l.maxAngle, fp);
+                }
+            }
+        }
     }
 
     void Model::loadFromFile(const std::string &filename)
@@ -131,7 +173,7 @@ namespace pmx
         info.header[4] = '\0';
         PMX_LOADER_THROW(std::string(info.header) != "PMX ", "failed to load model");
 
-        freadFloat<1>(&info.version, fp);
+        freadFloat(&info.version, fp);
         PMX_LOADER_THROW(info.version != 2.0f, "failed to load model");
 
         uint8_t bs;
@@ -144,6 +186,13 @@ namespace pmx
         freadTextBuf(info.modelNameEN, fp);
         freadTextBuf(info.comment, fp);
         freadTextBuf(info.commentEN, fp);
+        if (!info.isUtf8())
+        {
+            info.modelName = UTF16_LE_to_UTF8(info.modelName);
+            info.modelNameEN = UTF16_LE_to_UTF8(info.modelNameEN);
+            info.comment = UTF16_LE_to_UTF8(info.comment);
+            info.commentEN = UTF16_LE_to_UTF8(info.commentEN);
+        }
 
         uint32_t vertCount;
         freadUint(vertCount, 4, fp);
@@ -155,7 +204,7 @@ namespace pmx
         freadUint(indexCount, 4, fp);
         indices.resize(indexCount);
         for (auto &i : indices)
-            freadUint(i, info.byteSize[VERT_IDX_SIZE], fp);
+            freadUint(i, info.vertexIndexSize(), fp);
 
         uint32_t textureCount;
         freadUint(textureCount, 4, fp);
@@ -172,15 +221,19 @@ namespace pmx
         {
             std::string rawPath;
             freadTextBuf(rawPath, fp);
-            tp = modelFileDir + convertToNativeEncoding(rawPath, info.byteSize[ENCODING] ? EncodingType::UTF8 : EncodingType::UTF16_LE);
+            tp = modelFileDir + convertToNativeEncoding(rawPath, info.isUtf8() ? EncodingType::UTF8 : EncodingType::UTF16_LE);
         }
 
         uint32_t materialCount;
         freadUint(materialCount, 4, fp);
         materials.resize(materialCount);
-
         for (auto &m : materials)
             freadMaterial(m, fp);
+
+        uint32_t boneCount;
+        freadUint(boneCount, 4, fp);
+        for (auto &b : bones)
+            freadBone(b, fp);
         fclose(fp);
     }
 }
