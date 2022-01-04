@@ -15,9 +15,9 @@ struct BoneKeyFrameRecord
     glm::quat rotation;
 
     uint8_t xCurve[4];
-    uint8_t YCurve[4];
+    uint8_t yCurve[4];
     uint8_t zCurve[4];
-    uint8_t RCurve[4];
+    uint8_t rCurve[4];
 };
 
 struct MorphKeyFrameRecord

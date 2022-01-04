@@ -4,12 +4,11 @@
 #include <stdexcept>
 #include <utils/CodeConverter.h>
 #include <pmx/FileHelper.h>
-
 void freadBoneKeyFrameRecord(BoneKeyFrameRecord &b, FILE *fp)
 {
-    char boneNameBuffer[15];
+    char boneNameBuffer[16]{0};
     fread(boneNameBuffer, 1, 15, fp);
-    b.boneName = shiftJIS_to_UTF8(std::string(boneNameBuffer, 15));
+    b.boneName = shiftJIS_to_UTF8(std::string(boneNameBuffer));
 
     freadUint(b.frameTime, 4, fp);
     freadFloat<3>(&b.translation, fp);
@@ -24,7 +23,7 @@ void freadBoneKeyFrameRecord(BoneKeyFrameRecord &b, FILE *fp)
     }
     for (uint8_t i = 0; i < 4; ++i)
     {
-        freadUint(b.YCurve[i], 1, fp);
+        freadUint(b.yCurve[i], 1, fp);
         freadUint(tmp, 3, fp);
     }
     for (uint8_t i = 0; i < 4; ++i)
@@ -34,15 +33,15 @@ void freadBoneKeyFrameRecord(BoneKeyFrameRecord &b, FILE *fp)
     }
     for (uint8_t i = 0; i < 4; ++i)
     {
-        freadUint(b.RCurve[i], 1, fp);
+        freadUint(b.rCurve[i], 1, fp);
         freadUint(tmp, 3, fp);
     }
 }
 void freadMorphKeyFrameRecord(MorphKeyFrameRecord &m, FILE *fp)
 {
-    char morphNameBuffer[15];
+    char morphNameBuffer[16]{0};
     fread(morphNameBuffer, sizeof(char), 15, fp);
-    m.morphName = shiftJIS_to_UTF8(std::string(morphNameBuffer, 15));
+    m.morphName = shiftJIS_to_UTF8(std::string(morphNameBuffer));
     freadUint(m.frameTime, 4, fp);
     freadFloat<1>(&m.weight, fp);
 }
@@ -61,9 +60,9 @@ void VmdData::loadFromFile(const std::string &filename)
     else
         throw std::runtime_error("failed to load vmd data");
 
-    char nameBuffer[20];
+    char nameBuffer[21]{0};
     fread(nameBuffer, 1, ver * 10, fp);
-    modelName = shiftJIS_to_UTF8(std::string(nameBuffer, ver * 10));
+    modelName = shiftJIS_to_UTF8(std::string(nameBuffer));
 
     uint32_t boneKeyFrameCount;
     freadUint(boneKeyFrameCount, 4, fp);

@@ -11,6 +11,7 @@
 
 #include <pmx/PmxModelRenderer.h>
 #include <pmx/VmdData.h>
+#include <pmx/PmxBoneAnimator.h>
 
 #include <engine/Scene.h>
 #include <engine/OffscreenRenderer.h>
@@ -56,17 +57,19 @@ int main(int argc, char *argv[])
         motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
 
         pmx::Model model;
-        // model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
-        model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
+        model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
+        // model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
+        PmxBoneAnimator animator(model, motion);
+
         Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
         Shader depthShader(projRootDir + "res/shaders/depth_vert.shader", projRootDir + "res/shaders/depth_frag.shader");
-        PmxModelRenderer renderer(&model, &shader, &depthShader);
+        PmxModelRenderer renderer(&model, &shader, &depthShader, &animator);
         mainScene.addObject(&renderer);
 
         pmx::Model plane;
         plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
         Shader planeShader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
-        PmxModelRenderer planeRenderer(&plane, &shader, &depthShader);
+        PmxModelRenderer planeRenderer(&plane, &shader, &depthShader, nullptr);
         mainScene.addObject(&planeRenderer);
 
         glEnable(GL_DEPTH_TEST);
@@ -88,10 +91,6 @@ int main(int argc, char *argv[])
                 mainScene.onRenderShadowMap();
 
                 offscreenRenderer.begin();
-                // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                // glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-                // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                // glEnable(GL_DEPTH_TEST);
                 mainScene.onRender();
                 offscreenRenderer.end();
 

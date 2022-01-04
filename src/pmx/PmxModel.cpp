@@ -112,7 +112,6 @@ namespace pmx
             bone.name = UTF16_LE_to_UTF8(bone.name);
             bone.nameEN = UTF16_LE_to_UTF8(bone.nameEN);
         }
-
         freadFloat<3>(&bone.position, fp);
         freadInt(bone.parentIndex, info.boneIndexSize(), fp);
         freadInt(bone.deformOrder, 4, fp);
@@ -122,16 +121,12 @@ namespace pmx
         else
             freadFloat<3>(&bone.endPos, fp);
 
-        if (bone.bitFlag & 0x0100)
+        if ((bone.bitFlag & 0x0100) || (bone.bitFlag & 0x0200))
         {
-            freadInt(bone.rotAttribIndex, info.boneIndexSize(), fp);
-            freadFloat(&bone.rotAttribWeight, fp);
+            freadInt(bone.attribIndex, info.boneIndexSize(), fp);
+            freadFloat(&bone.attribWeight, fp);
         }
-        if (bone.bitFlag & 0x0200)
-        {
-            freadInt(bone.transAttribIndex, info.boneIndexSize(), fp);
-            freadFloat(&bone.transAttribWeight, fp);
-        }
+
         if (bone.bitFlag & 0x0400)
             freadFloat<3>(&bone.lockedAxis, fp);
         if (bone.bitFlag & 0x0800)
@@ -232,6 +227,7 @@ namespace pmx
 
         uint32_t boneCount;
         freadUint(boneCount, 4, fp);
+        bones.resize(boneCount);
         for (auto &b : bones)
             freadBone(b, fp);
         fclose(fp);

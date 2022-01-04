@@ -17,6 +17,30 @@ void freadUint(T &n, size_t size, FILE *fp)
 template <typename T>
 void freadInt(T &n, size_t size, FILE *fp)
 {
+    switch (size)
+    {
+    case 1:
+    {
+        int8_t i;
+        fread(&i, 1, 1, fp);
+        n = i;
+        return;
+    }
+    case 2:
+    {
+        int16_t i;
+        fread(&i, 2, 1, fp);
+        n = i;
+        return;
+    }
+    case 4:
+    {
+        int32_t i;
+        fread(&i, 4, 1, fp);
+        n = i;
+        return;
+    }
+    }
     fread(&n, size, 1, fp);
 }
 

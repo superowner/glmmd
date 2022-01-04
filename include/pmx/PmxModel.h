@@ -147,10 +147,8 @@ namespace pmx
         int32_t endBoneIndex;
         glm::vec3 endPos;
 
-        int32_t rotAttribIndex;
-        float rotAttribWeight;
-        int32_t transAttribIndex;
-        float transAttribWeight;
+        int32_t attribIndex;
+        float attribWeight;
 
         glm::vec3 lockedAxis;
         glm::vec3 localAxisX;

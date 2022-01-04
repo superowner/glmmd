@@ -4,7 +4,6 @@ in vec3 norm;
 in vec2 texCoord;
 in vec3 fragPos;
 in vec4 fragPosLightSpace;
-
 struct Material
 {
     vec4 diffuseColor;
@@ -65,6 +64,8 @@ float calcShadow()
     return shadow;
 }
 
+in vec3 testColor;
+
 void main()
 {
     vec3 result;
@@ -119,5 +120,6 @@ void main()
             opacity *= _specular.a;
         }
     }
+    //result = testColor;
     FragColor = vec4(result, opacity);
 }

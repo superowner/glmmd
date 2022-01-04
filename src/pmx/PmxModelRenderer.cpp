@@ -1,9 +1,15 @@
 #include <pmx/PmxModelRenderer.h>
 #include <imgui/imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <cstdio>
 void PmxModelRenderer::onUpdate(float deltaTime)
 {
+    currentTime += deltaTime * 30;
+    if (m_pAnimator != nullptr)
+    {
+        m_pAnimator->updateBoneTransform(currentTime, deltaTime);
+        m_boneTransformTex.bindData(m_pAnimator->finalTransformBuffer());
+    }
 }
 
 void PmxModelRenderer::onRenderShadowMap()
@@ -76,34 +82,63 @@ void PmxModelRenderer::onRender()
         else
             m_mainShader->setUniform1i("mat.hasToon", 0);
 
+        m_boneTransformTex.bind(8);
+        m_mainShader->setUniform1i("boneTransform", 8);
+
         m_IBOList[i].bind();
         glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
     }
 }
-PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader)
-    : ObjectBase(pShader, pDepthShader), m_pModel(pModel)
+PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader, PmxBoneAnimator *pAnimator)
+    : ObjectBase(pShader, pDepthShader), m_pModel(pModel), m_pAnimator(pAnimator), currentTime(0.0f)
 {
     assert(m_pModel != nullptr);
 
     m_VAO.create();
     m_VAO.bind();
 
-    unsigned int stride = 8;
+    unsigned int stride = 17;
 
-    float *vertices = new float[m_pModel->vertices.size() * stride];
+    auto &vl = m_pModel->vertices;
+    float *vertices = new float[vl.size() * stride];
 
-    for (size_t i = 0; i < m_pModel->vertices.size(); ++i)
+    size_t j = 0;
+    for (size_t i = 0; i < vl.size(); ++i, j += stride)
     {
-        vertices[stride * i + 0] = m_pModel->vertices[i].position.x;
-        vertices[stride * i + 1] = m_pModel->vertices[i].position.y;
-        vertices[stride * i + 2] = m_pModel->vertices[i].position.z;
+        vertices[j + 0] = vl[i].position.x;
+        vertices[j + 1] = vl[i].position.y;
+        vertices[j + 2] = vl[i].position.z;
 
-        vertices[stride * i + 3] = m_pModel->vertices[i].normal.x;
-        vertices[stride * i + 4] = m_pModel->vertices[i].normal.y;
-        vertices[stride * i + 5] = m_pModel->vertices[i].normal.z;
+        vertices[j + 3] = vl[i].normal.x;
+        vertices[j + 4] = vl[i].normal.y;
+        vertices[j + 5] = vl[i].normal.z;
 
-        vertices[stride * i + 6] = m_pModel->vertices[i].uv.x;
-        vertices[stride * i + 7] = m_pModel->vertices[i].uv.y;
+        vertices[j + 6] = vl[i].uv.x;
+        vertices[j + 7] = vl[i].uv.y;
+
+        switch (vl[i].deformMethod)
+        {
+        case 0:
+            vertices[j + 8] = 1;
+            vertices[j + 9] = vl[i].bindedBone[0];
+            break;
+        case 1:
+        case 3:
+            vertices[j + 8] = 2;
+            vertices[j + 9] = vl[i].bindedBone[0];
+            vertices[j + 10] = vl[i].bindedBone[1];
+            vertices[j + 13] = vl[i].weights[0];
+            vertices[j + 14] = vl[i].weights[1];
+            break;
+        case 2:
+            vertices[j + 8] = 4;
+            for (uint8_t k = 0; k < 4; ++k)
+            {
+                vertices[j + 9 + k] = vl[i].bindedBone[k];
+                vertices[j + 13 + k] = vl[i].weights[k];
+            }
+            break;
+        }
     }
 
     m_VBO.create(vertices, sizeof(float) * m_pModel->vertices.size() * stride);
@@ -122,6 +157,9 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
     layout.push(GL_FLOAT, 3);
     layout.push(GL_FLOAT, 3);
     layout.push(GL_FLOAT, 2);
+    layout.push(GL_FLOAT, 1);
+    layout.push(GL_FLOAT, 4);
+    layout.push(GL_FLOAT, 4);
     m_VAO.addBuffer(m_VBO, layout);
     m_VBO.unbind();
     m_VAO.unbind();
@@ -132,7 +170,11 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
 
     // load default toon
     for (unsigned int i = 0; i < 10; ++i)
-        m_defaultToon[i].createFromFile(std::string("../res/toon/toon") + (i < 9 ? "0" : "") + std::to_string(i + 1) + ".bmp");
+        m_defaultToon[i].createFromFile(std::string("../res/toon/toon") + (i < 9 ? "0" : "") +
+                                        std::to_string(i + 1) + ".bmp");
+
+    // animator
+    m_boneTransformTex.createFloatBuffer(4, m_pModel->bones.size());
 }
 
 void PmxModelRenderer::onImGuiRender()

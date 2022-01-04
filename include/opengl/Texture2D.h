@@ -18,8 +18,11 @@ public:
     void createFromFile(const std::string &filename);
     void create(int width, int height);
     void createDepthMap(int width, int height);
-    
+    void createFloatBuffer(int width, int height);
+    void bindData(const float *);
+
     void destroy();
+    void bind() const;
     void bind(unsigned int unit) const;
     void unbind() const;
 
