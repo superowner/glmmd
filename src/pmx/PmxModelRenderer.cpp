@@ -1,7 +1,6 @@
 #include <pmx/PmxModelRenderer.h>
 #include <imgui/imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <cstdio>
 void PmxModelRenderer::onUpdate(float deltaTime)
 {
     currentTime += deltaTime * 30;
@@ -16,7 +15,11 @@ void PmxModelRenderer::onRenderShadowMap()
 {
     m_depthShader->use();
     m_VAO.bind();
-
+    if (m_pAnimator != nullptr)
+    {
+        m_boneTransformTex.bind(8);
+        m_depthShader->setUniform1i("boneTransform", 8);
+    }
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
         const auto &mat = m_pModel->materials[i];
@@ -82,8 +85,11 @@ void PmxModelRenderer::onRender()
         else
             m_mainShader->setUniform1i("mat.hasToon", 0);
 
-        m_boneTransformTex.bind(8);
-        m_mainShader->setUniform1i("boneTransform", 8);
+        if (m_pAnimator != nullptr)
+        {
+            m_boneTransformTex.bind(8);
+            m_mainShader->setUniform1i("boneTransform", 8);
+        }
 
         m_IBOList[i].bind();
         glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);

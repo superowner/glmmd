@@ -39,6 +39,8 @@ uniform sampler2D shadowMap;
 
 out vec4 FragColor;
 
+in vec3 testColor;
+
 float calcShadow()
 {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -63,8 +65,6 @@ float calcShadow()
     shadow /= (2.0 * kernelRadius + 1.0) * (2.0 * kernelRadius + 1.0);
     return shadow;
 }
-
-in vec3 testColor;
 
 void main()
 {
@@ -120,6 +120,5 @@ void main()
             opacity *= _specular.a;
         }
     }
-    //result = testColor;
     FragColor = vec4(result, opacity);
 }

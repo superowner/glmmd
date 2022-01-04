@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
         pmx::Model plane;
         plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
-        Shader planeShader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
+        Shader planeShader(projRootDir + "res/shaders/mmd_style_static_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
         PmxModelRenderer planeRenderer(&plane, &shader, &depthShader, nullptr);
         mainScene.addObject(&planeRenderer);
 

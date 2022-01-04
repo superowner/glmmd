@@ -36,28 +36,28 @@ out vec3 testColor;
 
 void main()
 {
-    mat4 modelVert;
+    mat4 modelVert = model;
     boneCount = textureSize(boneTransform, 0).y;
     if (deformMethod == 1)
     {
-        modelVert = model * getTransformMat(bindedBone.x);
+        modelVert = modelVert * getTransformMat(bindedBone.x);
     }
     else if (deformMethod == 2)
     {
-        modelVert = model * (weights.x * getTransformMat(bindedBone.x) + (1.0 - weights.x) * getTransformMat(bindedBone.y));
+        modelVert = modelVert * (weights.x * getTransformMat(bindedBone.x) + (1.0 - weights.x) * getTransformMat(bindedBone.y));
     }
     else if (deformMethod == 4)
     {
-        modelVert = model * (weights.x * getTransformMat(bindedBone.x) 
+        modelVert = modelVert * (weights.x * getTransformMat(bindedBone.x) 
         + weights.y * getTransformMat(bindedBone.y) 
         + weights.z * getTransformMat(bindedBone.z) 
         + weights.w * getTransformMat(bindedBone.w));
     }
 
     gl_Position = projection * view * modelVert * vec4(aPos, 1.0);
-    norm = normalize(mat3(transpose(inverse(model))) * aNormal);
+    norm = normalize(mat3(transpose(inverse(modelVert))) * aNormal);
     texCoord = aTexCoord;
-    fragPos = vec3(model * vec4(aPos, 1.0));
+    fragPos = vec3(modelVert * vec4(aPos, 1.0));
     fragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
-    testColor =  vec3(modelVert[0][0], modelVert[1][1], modelVert[2][2]);
+    
 }
