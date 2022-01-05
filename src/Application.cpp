@@ -54,11 +54,12 @@ int main(int argc, char *argv[])
         mainScene.init(SCR_WIDTH, SCR_HEIGHT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
 
         VmdData motion;
-        motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
+        //motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
+        motion.loadFromFile(projRootDir + "res/motions/sweetmagic/sweetmagic-left.vmd");
 
         pmx::Model model;
-        model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
-        // model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
+        //model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
+        model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
         PmxBoneAnimator animator(model, motion);
 
         Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
@@ -69,7 +70,8 @@ int main(int argc, char *argv[])
         pmx::Model plane;
         plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
         Shader planeShader(projRootDir + "res/shaders/mmd_style_static_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
-        PmxModelRenderer planeRenderer(&plane, &shader, &depthShader, nullptr);
+        Shader planeDepthShader(projRootDir + "res/shaders/depth_static_vert.shader", projRootDir + "res/shaders/depth_frag.shader");
+        PmxModelRenderer planeRenderer(&plane, &planeShader, &planeDepthShader, nullptr);
         mainScene.addObject(&planeRenderer);
 
         glEnable(GL_DEPTH_TEST);

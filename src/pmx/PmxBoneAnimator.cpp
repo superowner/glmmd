@@ -4,9 +4,13 @@
 #include <algorithm>
 glm::mat4 BoneTransform::getLocalMatrix()
 {
-    // + localTranslationOffset ???
     glm::mat4 trans = glm::translate(glm::mat4(1.0), localTranslation + localTranslationOffset);
     return trans * glm::mat4_cast(localRotation);
+}
+
+glm::vec3 BoneTransform::getGlobalPosition()
+{
+    return glm::vec3(globalMatrix[3][0], globalMatrix[3][1], globalMatrix[3][2]);
 }
 
 PmxBoneAnimator::PmxBoneAnimator(const pmx::Model &model, const VmdData &motion)
@@ -30,12 +34,25 @@ PmxBoneAnimator::PmxBoneAnimator(const pmx::Model &model, const VmdData &motion)
     m_boneTransformList.resize(model.bones.size());
     for (uint32_t i = 0; i < model.bones.size(); ++i)
     {
-        m_boneTransformList[i].parentIndex = model.bones[i].parentIndex;
-        m_boneTransformList[i].position = model.bones[i].position;
-        m_boneTransformList[i].inverseOffset = glm::translate(glm::mat4(1.0f), -model.bones[i].position);
-        m_boneTransformList[i].localTranslationOffset = model.bones[i].position -
-                                                        (model.bones[i].parentIndex == -1 ? glm::vec3(0.0f)
-                                                                                          : (model.bones[model.bones[i].parentIndex].position));
+        auto &b = m_boneTransformList[i];
+        const auto &mb = model.bones[i];
+        b.parentIndex = mb.parentIndex;
+        b.bitFlag = mb.bitFlag;
+        b.attribIndex = mb.attribIndex;
+        b.attribWeight = mb.attribWeight;
+
+        b.position = mb.position;
+        b.inverseOffset = glm::translate(glm::mat4(1.0f), -mb.position);
+        b.localTranslationOffset = mb.position - (mb.parentIndex == -1 ? glm::vec3(0.0f)
+                                                                       : (model.bones[mb.parentIndex].position));
+        if (mb.bitFlag & 0x0020) // is IK
+        {
+            b.IK_targetBoneIndex = mb.IK_targetBoneIndex;
+            b.IK_loopCount = mb.IK_loopCount;
+            b.IK_limitAngle = mb.IK_limitAngle;
+            b.IK_linkList = mb.IK_linkList;
+            m_IKList.push_back(i);
+        }
     }
 
     for (uint32_t i = 0; i < model.bones.size(); ++i)
@@ -107,7 +124,14 @@ glm::quat PmxBoneAnimator::slerpRotation(const glm::quat &r0, const glm::quat &r
     }
     return a * r0 + b * r1;
 }
-
+float PmxBoneAnimator::clamp(float x, float floor, float ceil)
+{
+    if (x < floor)
+        return floor;
+    if (x > ceil)
+        return ceil;
+    return x;
+}
 BoneKeyFrameInterpolation PmxBoneAnimator::interpolate(uint32_t boneIndex, float frameTime) const
 {
     assert(boneIndex >= 0 && boneIndex < m_keyFrameTable.size());
@@ -151,28 +175,32 @@ void PmxBoneAnimator::setBoneLocalTransform(uint32_t boneIndex, float frameTime)
     {
         tr.localTranslation = identityTranslation;
         tr.localRotation = identityRotation;
-        return;
     }
-    if (itpl.leftKeyFrame == -1) // before the first key frame
+    else if (itpl.leftKeyFrame == -1) // before the first key frame
     {
         tr.localTranslation = lerpTranslation(identityTranslation,
                                               kf[0].translation,
                                               itpl.tx, itpl.ty, itpl.tz);
         tr.localRotation = slerpRotation(identityRotation, kf[0].rotation, itpl.tr);
-        return;
     }
-    if (itpl.rightKeyFrame == -1) // after the last key frame
+    else if (itpl.rightKeyFrame == -1) // after the last key frame
     {
         tr.localTranslation = kf.back().translation;
         tr.localRotation = kf.back().rotation;
-        return;
     }
-    tr.localTranslation = lerpTranslation(kf[itpl.leftKeyFrame].translation,
-                                          kf[itpl.rightKeyFrame].translation,
-                                          itpl.tx, itpl.ty, itpl.tz);
-    tr.localRotation = slerpRotation(kf[itpl.leftKeyFrame].rotation,
-                                     kf[itpl.rightKeyFrame].rotation,
-                                     itpl.tr);
+    else
+    {
+        tr.localTranslation = lerpTranslation(kf[itpl.leftKeyFrame].translation,
+                                              kf[itpl.rightKeyFrame].translation,
+                                              itpl.tx, itpl.ty, itpl.tz);
+        tr.localRotation = slerpRotation(kf[itpl.leftKeyFrame].rotation,
+                                         kf[itpl.rightKeyFrame].rotation,
+                                         itpl.tr);
+    }
+    if (tr.bitFlag & 0x0100)
+        tr.localRotation = slerpRotation(identityRotation, m_boneTransformList[tr.attribIndex].localRotation, tr.attribWeight) * tr.localRotation;
+    if (tr.bitFlag & 0x0200)
+        tr.localTranslation += m_boneTransformList[tr.attribIndex].localTranslation * tr.attribWeight;
 }
 
 void PmxBoneAnimator::setBoneGlobalTransformBeforePhysics()
@@ -181,7 +209,6 @@ void PmxBoneAnimator::setBoneGlobalTransformBeforePhysics()
     {
         int32_t parentIndex = m_boneTransformList[i].parentIndex;
         if (parentIndex == -1)
-            // translate bone.position ???
             m_boneTransformList[i].globalMatrix = glm::translate(m_boneTransformList[i].getLocalMatrix(),
                                                                  m_boneTransformList[i].position);
         else
@@ -195,7 +222,6 @@ void PmxBoneAnimator::setBoneGlobalTransformAfterPhysics()
     {
         int32_t parentIndex = m_boneTransformList[i].parentIndex;
         if (parentIndex == -1)
-            // translate bone.position ???
             m_boneTransformList[i].globalMatrix = m_boneTransformList[i].getLocalMatrix();
         else
             m_boneTransformList[i].globalMatrix = m_boneTransformList[parentIndex].globalMatrix *
@@ -203,10 +229,65 @@ void PmxBoneAnimator::setBoneGlobalTransformAfterPhysics()
     }
 }
 
+void PmxBoneAnimator::solveIK()
+{
+    for (auto &i : m_IKList)
+    {
+        auto &bone = m_boneTransformList[i];
+        glm::vec3 targetPos = bone.getGlobalPosition();
+        for (uint32_t loopCount = 0; loopCount < bone.IK_loopCount; ++loopCount)
+        {
+            for (uint32_t i = 0; i < bone.IK_linkList.size(); ++i)
+            {
+                glm::vec3 endEffectorPos = m_boneTransformList[bone.IK_targetBoneIndex].getGlobalPosition();
+
+                pmx::IKLink &linkedBone = bone.IK_linkList[i];
+                auto &currentBone = m_boneTransformList[linkedBone.index];
+
+                glm::vec3 currentBonePos = currentBone.getGlobalPosition();
+
+                if (glm::length(targetPos - currentBonePos) < FLT_EPSILON || glm::length(endEffectorPos - currentBonePos) < FLT_EPSILON)
+                {
+                    loopCount = bone.IK_loopCount;
+                    break;
+                }
+                glm::vec3 targetDir = glm::normalize(targetPos - currentBonePos);
+                glm::vec3 endEffectorDir = glm::normalize(endEffectorPos - currentBonePos);
+                if (glm::length(targetDir - endEffectorDir) < FLT_EPSILON)
+                {
+                    continue;
+                }
+                glm::mat3 inverseAxisTransform = glm::mat3(currentBone.globalMatrix);
+
+                float rotAngle = (std::min)(std::acos(glm::dot(targetDir, endEffectorDir)), bone.IK_limitAngle);
+                glm::vec3 rotAxis = glm::inverse(inverseAxisTransform) * glm::cross(endEffectorDir, targetDir);
+
+                //Add local transform
+                glm::quat rot = glm::quat(cos(0.5 * rotAngle), glm::normalize(rotAxis) * float(sin(0.5 * rotAngle)));
+
+                if (linkedBone.angleLimitOn)
+                {
+                    glm::vec3 rotEulerAngles = glm::eulerAngles(rot);
+                    rotEulerAngles.x = clamp(rotEulerAngles.x, linkedBone.minAngle.x, linkedBone.maxAngle.x);
+                    rotEulerAngles.y = clamp(rotEulerAngles.y, linkedBone.minAngle.y, linkedBone.maxAngle.y);
+                    rotEulerAngles.z = clamp(rotEulerAngles.z, linkedBone.minAngle.z, linkedBone.maxAngle.z);
+                    rot = glm::quat(rotEulerAngles);
+                }
+
+                currentBone.localRotation = rot * currentBone.localRotation;
+                
+            }
+        }
+    }
+}
+
 void PmxBoneAnimator::updateBoneTransform(float frameTime, float deltaTime)
 {
     for (uint32_t i = 0; i < m_boneTransformList.size(); ++i)
         setBoneLocalTransform(i, frameTime);
+    setBoneGlobalTransformBeforePhysics();
+    setBoneGlobalTransformAfterPhysics();
+    solveIK();
     setBoneGlobalTransformBeforePhysics();
     setBoneGlobalTransformAfterPhysics();
     for (uint32_t i = 0; i < m_boneTransformList.size(); ++i)
