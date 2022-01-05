@@ -48,8 +48,8 @@ private:
     static glm::vec3 lerpTranslation(const glm::vec3 &r0, const glm::vec3 &r1, float tx, float ty, float tz);
     static glm::quat slerpRotation(const glm::quat &r0, const glm::quat &r1, float tr);
     static float clamp(float x, float floor, float ceil);
-
     BoneKeyFrameInterpolation interpolate(uint32_t boneIndex, float frameTime) const;
+
     void setBoneLocalTransform(uint32_t boneIndex, float frameTime);
     void setBoneGlobalTransformBeforePhysics();
     void setBoneGlobalTransformAfterPhysics();

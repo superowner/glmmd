@@ -2,6 +2,9 @@
 #include <cassert>
 #include <unordered_map>
 #include <algorithm>
+#include <iostream>
+#define IK_SOLVER_TOL 1e-3
+
 glm::mat4 BoneTransform::getLocalMatrix()
 {
     glm::mat4 trans = glm::translate(glm::mat4(1.0), localTranslation + localTranslationOffset);
@@ -235,35 +238,43 @@ void PmxBoneAnimator::solveIK()
     {
         auto &bone = m_boneTransformList[i];
         glm::vec3 targetPos = bone.getGlobalPosition();
+
         for (uint32_t loopCount = 0; loopCount < bone.IK_loopCount; ++loopCount)
         {
-            for (uint32_t i = 0; i < bone.IK_linkList.size(); ++i)
+            for (uint32_t j = 0; j < bone.IK_linkList.size(); ++j)
             {
                 glm::vec3 endEffectorPos = m_boneTransformList[bone.IK_targetBoneIndex].getGlobalPosition();
 
-                pmx::IKLink &linkedBone = bone.IK_linkList[i];
+                pmx::IKLink &linkedBone = bone.IK_linkList[j];
                 auto &currentBone = m_boneTransformList[linkedBone.index];
 
                 glm::vec3 currentBonePos = currentBone.getGlobalPosition();
+                auto &pos = currentBonePos;
 
-                if (glm::length(targetPos - currentBonePos) < FLT_EPSILON || glm::length(endEffectorPos - currentBonePos) < FLT_EPSILON)
+                if (glm::length(targetPos - currentBonePos) < IK_SOLVER_TOL ||
+                    glm::length(endEffectorPos - currentBonePos) < IK_SOLVER_TOL)
                 {
+                    std::cout << "break" << loopCount << '\n';
                     loopCount = bone.IK_loopCount;
                     break;
                 }
                 glm::vec3 targetDir = glm::normalize(targetPos - currentBonePos);
                 glm::vec3 endEffectorDir = glm::normalize(endEffectorPos - currentBonePos);
-                if (glm::length(targetDir - endEffectorDir) < FLT_EPSILON)
+                if (glm::length(targetDir - endEffectorDir) < IK_SOLVER_TOL)
                 {
                     continue;
                 }
-                glm::mat3 inverseAxisTransform = glm::mat3(currentBone.globalMatrix);
-
                 float rotAngle = (std::min)(std::acos(glm::dot(targetDir, endEffectorDir)), bone.IK_limitAngle);
-                glm::vec3 rotAxis = glm::inverse(inverseAxisTransform) * glm::cross(endEffectorDir, targetDir);
+                if (fabs(rotAngle) < 0.02f)
+                {
+                    continue;
+                }
 
-                //Add local transform
-                glm::quat rot = glm::quat(cos(0.5 * rotAngle), glm::normalize(rotAxis) * float(sin(0.5 * rotAngle)));
+                glm::mat3 inverseAxisTransform = glm::mat3(currentBone.globalMatrix);
+                glm::vec3 rotAxis = glm::inverse(inverseAxisTransform) * glm::cross(endEffectorDir, targetDir);
+                // Add local transform
+                glm::quat rot = glm::quat(float(cos(0.5f * rotAngle)),
+                                          glm::normalize(rotAxis) * float(sin(0.5f * rotAngle)));
 
                 if (linkedBone.angleLimitOn)
                 {
@@ -275,7 +286,8 @@ void PmxBoneAnimator::solveIK()
                 }
 
                 currentBone.localRotation = rot * currentBone.localRotation;
-                
+                setBoneGlobalTransformBeforePhysics();
+                setBoneGlobalTransformAfterPhysics();
             }
         }
     }
@@ -283,15 +295,18 @@ void PmxBoneAnimator::solveIK()
 
 void PmxBoneAnimator::updateBoneTransform(float frameTime, float deltaTime)
 {
+    std::cout << frameTime << '\n';
     for (uint32_t i = 0; i < m_boneTransformList.size(); ++i)
         setBoneLocalTransform(i, frameTime);
     setBoneGlobalTransformBeforePhysics();
     setBoneGlobalTransformAfterPhysics();
     solveIK();
+
     setBoneGlobalTransformBeforePhysics();
     setBoneGlobalTransformAfterPhysics();
     for (uint32_t i = 0; i < m_boneTransformList.size(); ++i)
     {
+        auto pos = m_boneTransformList[i].getGlobalPosition();
         glm::mat4 finalTransform = m_boneTransformList[i].globalMatrix * m_boneTransformList[i].inverseOffset;
         for (uint8_t j = 0; j < 16; ++j)
             m_finalTransformBuffer[i * 16 + j] = *(&finalTransform[0][0] + j);

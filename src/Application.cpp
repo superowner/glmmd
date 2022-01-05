@@ -54,12 +54,14 @@ int main(int argc, char *argv[])
         mainScene.init(SCR_WIDTH, SCR_HEIGHT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
 
         VmdData motion;
-        //motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
+        // motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
         motion.loadFromFile(projRootDir + "res/motions/sweetmagic/sweetmagic-left.vmd");
+        // motion.loadFromFile(projRootDir + "res/motions/box_test.vmd");
 
         pmx::Model model;
-        //model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
+        // model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
         model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
+        // model.loadFromFile(projRootDir + "res/models/box.pmx");
         PmxBoneAnimator animator(model, motion);
 
         Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");

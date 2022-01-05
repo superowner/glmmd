@@ -3,7 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 void PmxModelRenderer::onUpdate(float deltaTime)
 {
-    currentTime += deltaTime * 30;
+    currentTime += deltaTime * 30.f;
+    
     if (m_pAnimator != nullptr)
     {
         m_pAnimator->updateBoneTransform(currentTime, deltaTime);
