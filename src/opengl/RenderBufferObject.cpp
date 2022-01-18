@@ -8,6 +8,15 @@ void RenderBufferObject::create(int width, int height)
     glGenRenderbuffers(1, &m_id);
     glBindRenderbuffer(GL_RENDERBUFFER, m_id);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void RenderBufferObject::createMultiSample(int width, int height, int sample)
+{
+    glGenRenderbuffers(1, &m_id);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_id);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, sample, GL_DEPTH24_STENCIL8, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
 void RenderBufferObject::destroy()

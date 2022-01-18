@@ -112,9 +112,7 @@ void Scene::onRender()
 void Scene::onImGuiRender()
 {
     ImGui::SliderFloat("FOV", &m_camera.yfov, 0.1f, 120.0f);
-    ImGui::SliderFloat("Main Light Dir.x", &m_mainLight.dir.x, -1.0f, 1.0f);
-    ImGui::SliderFloat("Main Light Dir.y", &m_mainLight.dir.y, -1.0f, 1.0f);
-    ImGui::SliderFloat("Main Light Dir.z", &m_mainLight.dir.z, -1.0f, 1.0f);
+    ImGui::SliderFloat3("Main Light Dir", &m_mainLight.dir.x, -1.0f, 1.0f);
     ImGui::ColorEdit3("Main Light Diffuse", m_mainLight.diffuse);
     ImGui::ColorEdit3("Main Light Ambient", m_mainLight.ambient);
 

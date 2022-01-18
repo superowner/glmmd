@@ -1,0 +1,7 @@
+{
+    "ScreenWidth": 1920,
+    "ScreenHeight": 1080,
+    "ShadowMapWidth": 2048,
+    "ShadowMapHeight": 2048,
+    "AASamples": 4
+}

@@ -12,12 +12,15 @@ void PmxModelRenderer::onRenderShadowMap()
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
         const auto &mat = m_pModel->materials[i];
-        if (mat.bitFlag & 0x01)
-            glEnable(GL_CULL_FACE);
-        else
-            glDisable(GL_CULL_FACE);
-        m_IBOList[i].bind();
-        glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
+        if (mat.bitFlag & (0x02 | 0x04 | 0x08))
+        {
+            if (mat.bitFlag & 0x01)
+                glDisable(GL_CULL_FACE);
+            else
+                glEnable(GL_CULL_FACE);
+            m_IBOList[i].bind();
+            glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
+        }
     }
 }
 
@@ -29,9 +32,9 @@ void PmxModelRenderer::onRender()
     {
         const auto &mat = m_pModel->materials[i];
         if (mat.bitFlag & 0x01)
-            glEnable(GL_CULL_FACE);
-        else
             glDisable(GL_CULL_FACE);
+        else
+            glEnable(GL_CULL_FACE);
 
         m_mainShader->setUniform4fv("mat.diffuseColor", 1, mat.diffuse);
         m_mainShader->setUniform3fv("mat.specularColor", 1, mat.specular);

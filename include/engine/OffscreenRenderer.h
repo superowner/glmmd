@@ -8,17 +8,19 @@ class OffscreenRenderer
 private:
     int m_width;
     int m_height;
+    int m_samples;
     FrameBufferObject m_FBO;
+    FrameBufferObject m_intermediateFBO;
     VertexArrayObject m_quadVAO;
     VertexBufferObject m_quadVBO;
-    Shader m_screenShader;
+    Shader *m_pScreenShader;
 
 public:
-    OffscreenRenderer(int width, int height, const std::string &scrVertShaderPath, const std::string &scrFragShaderPath);
+    OffscreenRenderer(int width, int height, int sample, Shader *pScreenShader);
     ~OffscreenRenderer();
 
     void begin() const;
-    void end() const; 
+    void end() const;
 };
 
 #endif

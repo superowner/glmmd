@@ -17,6 +17,7 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/OffscreenRenderer.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/CodeConverter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/GlobalConfig.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/VertexBufferObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opengl/IndexBufferObject.cpp

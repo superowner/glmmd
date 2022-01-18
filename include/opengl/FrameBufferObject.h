@@ -17,9 +17,12 @@ public:
 
     void create(int width, int height);
     void createDepthBuffer(int width, int height);
+    void createMultiSample(int width, int height, int sample);
     void destroy();
 
     void bind() const;
+    void bindRead() const;
+    void bindDraw() const;
     void unbind() const;
 
     const Texture2D &tex() const;

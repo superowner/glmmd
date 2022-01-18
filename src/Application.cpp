@@ -14,20 +14,18 @@
 #include <engine/OffscreenRenderer.h>
 #include <engine/Scene.h>
 
+#include <utils/GlobalConfig.h>
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
-
-const unsigned int SCR_WIDTH = 1440;
-const unsigned int SCR_HEIGHT = 960;
-
-const int SHADOW_MAP_WIDTH = 2048;
-const int SHADOW_MAP_HEIGHT = 2048;
 
 const std::string projRootDir("../");
 
 Scene mainScene;
 
 GLFWwindow *initWindow();
+
+GlobalConfig Cfg(projRootDir + "res/GlobalConfig.json");
 
 int main(int argc, char *argv[])
 {
@@ -49,22 +47,24 @@ int main(int argc, char *argv[])
         ImGui_ImplOpenGL3_Init(glsl_version);
         ImGui::StyleColorsDark();
 
-        mainScene.init(SCR_WIDTH, SCR_HEIGHT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
+        mainScene.init(Cfg.ScreenWidth, Cfg.ScreenHeight, Cfg.ShadowMapWidth, Cfg.ShadowMapHeight);
 
         pmx::Model model;
-        // model.loadFromFile(projRootDir + "res/models/DIYUSI/DIYUSI.pmx");
-        model.loadFromFile(projRootDir + "res/models/alice_alteanative_160907a/AliceMargatroid.pmx");
-        // model.loadFromFile(projRootDir + "res/models/box.pmx");
+        model.loadFromFile(projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
 
-        Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
-        Shader depthShader(projRootDir + "res/shaders/depth_vert.shader", projRootDir + "res/shaders/depth_frag.shader");
+        Shader shader(projRootDir + "res/shaders/mmd_style_vert.shader",
+                      projRootDir + "res/shaders/mmd_style_frag.shader");
+        Shader depthShader(projRootDir + "res/shaders/depth_vert.shader",
+                           projRootDir + "res/shaders/depth_frag.shader");
         PmxModelRenderer renderer(&model, &shader, &depthShader);
         mainScene.addObject(&renderer);
 
         pmx::Model plane;
         plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
-        Shader planeShader(projRootDir + "res/shaders/mmd_style_vert.shader", projRootDir + "res/shaders/mmd_style_frag.shader");
-        Shader planeDepthShader(projRootDir + "res/shaders/depth_vert.shader", projRootDir + "res/shaders/depth_frag.shader");
+        Shader planeShader(projRootDir + "res/shaders/mmd_style_vert.shader",
+                           projRootDir + "res/shaders/mmd_style_frag.shader");
+        Shader planeDepthShader(projRootDir + "res/shaders/depth_vert.shader",
+                                projRootDir + "res/shaders/depth_frag.shader");
         PmxModelRenderer planeRenderer(&plane, &planeShader, &planeDepthShader);
         mainScene.addObject(&planeRenderer);
 
@@ -72,7 +72,10 @@ int main(int argc, char *argv[])
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_FRAMEBUFFER_SRGB);
-        OffscreenRenderer offscreenRenderer(SCR_WIDTH, SCR_HEIGHT, projRootDir + "res/shaders/screen_vert.shader", projRootDir + "res/shaders/screen_frag.shader");
+
+        Shader screenShader(projRootDir + "res/shaders/screen_vert.shader",
+                            projRootDir + "res/shaders/screen_frag.shader");
+        OffscreenRenderer offscreenRenderer(Cfg.ScreenWidth, Cfg.ScreenHeight, Cfg.AASamples, &screenShader);
 
         while (!glfwWindowShouldClose(window))
         {
@@ -118,7 +121,7 @@ GLFWwindow *initWindow()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "GLMMD", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(Cfg.ScreenWidth, Cfg.ScreenHeight, "GLMMD", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;

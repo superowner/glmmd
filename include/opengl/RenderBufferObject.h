@@ -11,6 +11,7 @@ public:
     ~RenderBufferObject();
 
     void create(int width, int height);
+    void createMultiSample(int width, int height, int sample);
     void destroy();
 
     void bind() const;
