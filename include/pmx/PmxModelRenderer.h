@@ -2,9 +2,8 @@
 #define PMX_MODEL_RENDERER_H_
 
 #include <engine/ObjectBase.h>
-#include <pmx/PmxModel.h>
 #include <opengl/common.h>
-#include <pmx/PmxBoneAnimator.h>
+#include <pmx/PmxModel.h>
 class PmxModelRenderer : public ObjectBase
 {
 private:
@@ -15,12 +14,8 @@ private:
     std::vector<Texture2D> m_texList;
     Texture2D m_defaultToon[10];
 
-    float currentTime;
-    PmxBoneAnimator *m_pAnimator;
-    Texture2D m_boneTransformTex;
-
 public:
-    PmxModelRenderer(pmx::Model *, Shader *, Shader *, PmxBoneAnimator *);
+    PmxModelRenderer(pmx::Model *, Shader *, Shader *);
     void onUpdate(float deltaTime) override;
     void onRender() override;
     void onRenderShadowMap() override;

@@ -1,26 +1,14 @@
-#include <pmx/PmxModelRenderer.h>
-#include <imgui/imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui/imgui.h>
+#include <pmx/PmxModelRenderer.h>
 void PmxModelRenderer::onUpdate(float deltaTime)
 {
-    currentTime += deltaTime * 30.f;
-    
-    if (m_pAnimator != nullptr)
-    {
-        m_pAnimator->updateBoneTransform(currentTime, deltaTime);
-        m_boneTransformTex.bindData(m_pAnimator->finalTransformBuffer());
-    }
 }
 
 void PmxModelRenderer::onRenderShadowMap()
 {
     m_depthShader->use();
     m_VAO.bind();
-    if (m_pAnimator != nullptr)
-    {
-        m_boneTransformTex.bind(8);
-        m_depthShader->setUniform1i("boneTransform", 8);
-    }
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
         const auto &mat = m_pModel->materials[i];
@@ -86,25 +74,19 @@ void PmxModelRenderer::onRender()
         else
             m_mainShader->setUniform1i("mat.hasToon", 0);
 
-        if (m_pAnimator != nullptr)
-        {
-            m_boneTransformTex.bind(8);
-            m_mainShader->setUniform1i("boneTransform", 8);
-        }
-
         m_IBOList[i].bind();
         glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
     }
 }
-PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader, PmxBoneAnimator *pAnimator)
-    : ObjectBase(pShader, pDepthShader), m_pModel(pModel), m_pAnimator(pAnimator), currentTime(0.0f)
+PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader)
+    : ObjectBase(pShader, pDepthShader), m_pModel(pModel)
 {
     assert(m_pModel != nullptr);
 
     m_VAO.create();
     m_VAO.bind();
 
-    unsigned int stride = 17;
+    const unsigned int stride = 8;
 
     auto &vl = m_pModel->vertices;
     float *vertices = new float[vl.size() * stride];
@@ -122,30 +104,6 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
 
         vertices[j + 6] = vl[i].uv.x;
         vertices[j + 7] = vl[i].uv.y;
-
-        switch (vl[i].deformMethod)
-        {
-        case 0:
-            vertices[j + 8] = 1;
-            vertices[j + 9] = vl[i].bindedBone[0];
-            break;
-        case 1:
-        case 3:
-            vertices[j + 8] = 2;
-            vertices[j + 9] = vl[i].bindedBone[0];
-            vertices[j + 10] = vl[i].bindedBone[1];
-            vertices[j + 13] = vl[i].weights[0];
-            vertices[j + 14] = vl[i].weights[1];
-            break;
-        case 2:
-            vertices[j + 8] = 4;
-            for (uint8_t k = 0; k < 4; ++k)
-            {
-                vertices[j + 9 + k] = vl[i].bindedBone[k];
-                vertices[j + 13 + k] = vl[i].weights[k];
-            }
-            break;
-        }
     }
 
     m_VBO.create(vertices, sizeof(float) * m_pModel->vertices.size() * stride);
@@ -164,9 +122,6 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
     layout.push(GL_FLOAT, 3);
     layout.push(GL_FLOAT, 3);
     layout.push(GL_FLOAT, 2);
-    layout.push(GL_FLOAT, 1);
-    layout.push(GL_FLOAT, 4);
-    layout.push(GL_FLOAT, 4);
     m_VAO.addBuffer(m_VBO, layout);
     m_VBO.unbind();
     m_VAO.unbind();
@@ -179,9 +134,6 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
     for (unsigned int i = 0; i < 10; ++i)
         m_defaultToon[i].createFromFile(std::string("../res/toon/toon") + (i < 9 ? "0" : "") +
                                         std::to_string(i + 1) + ".bmp");
-
-    // animator
-    m_boneTransformTex.createFloatBuffer(4, m_pModel->bones.size());
 }
 
 void PmxModelRenderer::onImGuiRender()
