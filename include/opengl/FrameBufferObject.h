@@ -1,7 +1,7 @@
 #ifndef FRAME_BUFFER_OBJECT_H_
 #define FRAME_BUFFER_OBJECT_H_
-#include <opengl/Texture2D.h>
 #include <opengl/RenderBufferObject.h>
+#include <opengl/Texture2D.h>
 class FrameBufferObject
 {
 private:
@@ -15,9 +15,9 @@ public:
     FrameBufferObject();
     ~FrameBufferObject();
 
-    void create(int width, int height);
+    void create(int width, int height, GLenum internalFmt = GL_RGB, GLenum type = GL_UNSIGNED_BYTE);
     void createDepthBuffer(int width, int height);
-    void createMultiSample(int width, int height, int sample);
+    void createMultiSample(int width, int height, int sample, GLenum fmt);
     void destroy();
 
     void bind() const;

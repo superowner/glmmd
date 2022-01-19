@@ -1,10 +1,10 @@
 #include <engine/Scene.h>
 #include <imgui/imgui.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
 Scene::Scene() {}
 
-void Scene::init(int width, int height, int shadowMapWidth, int shadowMapHeight)
+void Scene::init(int width, int height, int shadowMapWidth, int shadowMapHeight,
+                 float lightCamWidth, float lightCamHeight, float lightCamNear, float lightCamFar)
 {
     m_width = width;
     m_height = height;
@@ -15,6 +15,10 @@ void Scene::init(int width, int height, int shadowMapWidth, int shadowMapHeight)
     m_mainLight.dir = glm::vec3(-0.5f, -1.0f, 0.5f);
     m_mainLight.setDiffuse(0.8f, 0.8f, 0.8f);
     m_mainLight.setAmbient(0.3f, 0.3f, 0.3f);
+    m_lightCamWidth = lightCamWidth;
+    m_lightCamHeight = lightCamHeight;
+    m_lightCamNear = lightCamNear;
+    m_lightCamFar = lightCamFar;
 }
 
 void Scene::handleEvent(float deltaTime)
@@ -63,8 +67,11 @@ void Scene::onRenderShadowMap()
     glClear(GL_DEPTH_BUFFER_BIT);
     glDisable(GL_CULL_FACE);
     float n = 1.0f, f = 20.0f;
-    m_lightCamera = Camera(0.0f, n, f * 2, -f * m_mainLight.dir, glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 lightProjection = m_lightCamera.getOrthoProjMatrix(-25.0f, 25.0f, -25.0f, 25.0f);
+    m_lightCamera = Camera(0.0f, m_lightCamNear, m_lightCamFar,
+                           -0.5f * m_lightCamFar * m_mainLight.dir,
+                           glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 lightProjection = m_lightCamera.getOrthoProjMatrix(-0.5 * m_lightCamWidth, 0.5 * m_lightCamWidth,
+                                                                 -0.5 * m_lightCamHeight, 0.5 * m_lightCamHeight);
     glm::mat4 lightView = m_lightCamera.getViewMatrix();
     m_lightSpaceMatrix = lightProjection * lightView;
     for (auto &pObj : m_objectList)
@@ -102,8 +109,10 @@ void Scene::onRender()
         pObj->mainShader()->setUniform3fv("viewPos", 1, m_camera.pos);
 
         pObj->mainShader()->setUniform3fv("mainLight.dir", 1, glm::normalize(m_mainLight.dir));
-        pObj->mainShader()->setUniform3fv("mainLight.diffuseLight", 1, glm::vec3(m_mainLight.diffuse[0], m_mainLight.diffuse[1], m_mainLight.diffuse[2]));
-        pObj->mainShader()->setUniform3fv("mainLight.ambientLight", 1, glm::vec3(m_mainLight.ambient[0], m_mainLight.ambient[1], m_mainLight.ambient[2]));
+        pObj->mainShader()->setUniform3fv("mainLight.diffuseLight", 1,
+                                          glm::vec3(m_mainLight.diffuse[0], m_mainLight.diffuse[1], m_mainLight.diffuse[2]));
+        pObj->mainShader()->setUniform3fv("mainLight.ambientLight", 1,
+                                          glm::vec3(m_mainLight.ambient[0], m_mainLight.ambient[1], m_mainLight.ambient[2]));
 
         pObj->onRender();
     }

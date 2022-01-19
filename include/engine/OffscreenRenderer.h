@@ -15,11 +15,15 @@ private:
     VertexBufferObject m_quadVBO;
     Shader *m_pScreenShader;
 
+    bool m_enableHdr;
+    float m_hdrExposure;
+
 public:
     OffscreenRenderer(int width, int height, int sample, Shader *pScreenShader);
     ~OffscreenRenderer();
 
     void begin() const;
+    void onImGui();
     void end() const;
 };
 

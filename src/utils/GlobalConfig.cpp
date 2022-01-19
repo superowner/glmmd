@@ -5,7 +5,11 @@ GlobalConfig::GlobalConfig(const std::string &filename)
       ScreenHeight(960),
       ShadowMapWidth(2048),
       ShadowMapHeight(2048),
-      AASamples(1)
+      AASamples(1),
+      LightCamWidth(50.0f),
+      LightCamHeight(50.0f),
+      LightCamNear(1.0f),
+      LightCamFar(40.0f)
 {
     JsonParser parser;
     if (!parser.loadFromFile(filename.c_str()))
@@ -26,4 +30,12 @@ GlobalConfig::GlobalConfig(const std::string &filename)
         ShadowMapHeight = root["ShadowMapHeight"].toInt();
     if (root.findKey("AASamples"))
         AASamples = root["AASamples"].toInt();
+    if (root.findKey("LightCamWidth"))
+        LightCamWidth = root["LightCamWidth"].getNum();
+    if (root.findKey("LightCamHeight"))
+        LightCamHeight = root["LightCamHeight"].getNum();
+    if (root.findKey("LightCamNear"))
+        LightCamNear = root["LightCamNear"].getNum();
+    if (root.findKey("LightCamFar"))
+        LightCamFar = root["LightCamFar"].getNum();
 }

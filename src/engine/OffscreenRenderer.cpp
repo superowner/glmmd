@@ -1,7 +1,10 @@
 #include <engine/OffscreenRenderer.h>
+#include <imgui/imgui.h>
 OffscreenRenderer::OffscreenRenderer(int width, int height, int sample, Shader *pScreenShader)
-    : m_width(width), m_height(height), m_samples(sample), m_pScreenShader(pScreenShader)
+    : m_width(width), m_height(height), m_samples(sample),
+      m_pScreenShader(pScreenShader), m_enableHdr(true), m_hdrExposure(1.0f)
 {
+    assert(pScreenShader != nullptr);
     float quadVertices[] = {
         -1.0f, 1.0f, 0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f, 0.0f,
@@ -19,11 +22,11 @@ OffscreenRenderer::OffscreenRenderer(int width, int height, int sample, Shader *
     m_quadVAO.addBuffer(m_quadVBO, layout);
 
     if (sample < 2)
-        m_FBO.create(width, height);
+        m_FBO.create(width, height, GL_RGBA16F, GL_FLOAT);
     else
     {
-        m_FBO.createMultiSample(width, height, sample);
-        m_intermediateFBO.create(width, height);
+        m_FBO.createMultiSample(width, height, sample, GL_RGBA16F);
+        m_intermediateFBO.create(width, height, GL_RGBA16F, GL_FLOAT);
     }
 }
 OffscreenRenderer::~OffscreenRenderer() {}
@@ -31,9 +34,18 @@ OffscreenRenderer::~OffscreenRenderer() {}
 void OffscreenRenderer::begin() const
 {
     m_FBO.bind();
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+}
+
+void OffscreenRenderer::onImGui()
+{
+    ImGui::Begin("Screen Effect Panel");
+    ImGui::Checkbox("Enable Hdr", &m_enableHdr);
+    ImGui::SliderFloat("Hdr Exposure", &m_hdrExposure, 0.0f, 16.0f);
+
+    ImGui::End();
 }
 
 void OffscreenRenderer::end() const
@@ -47,7 +59,7 @@ void OffscreenRenderer::end() const
 
     m_FBO.unbind();
     glDisable(GL_DEPTH_TEST);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_pScreenShader->use();
@@ -57,5 +69,7 @@ void OffscreenRenderer::end() const
     else
         m_FBO.tex().bind(0);
     m_pScreenShader->setUniform1i("screenTexture", 0);
+    m_pScreenShader->setUniform1i("enableHdr", m_enableHdr);
+    m_pScreenShader->setUniform1f("hdrExposure", m_hdrExposure);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }

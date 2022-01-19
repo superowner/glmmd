@@ -67,15 +67,14 @@ void Texture2D::createFromFile(const std::string &filename)
     stbi_image_free(data);
 }
 
-void Texture2D::create(int width, int height)
+void Texture2D::create(int width, int height, GLenum internalFmt, GLenum type)
 {
     destroy();
     m_width = width;
     m_height = height;
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D, m_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFmt, width, height, 0, GL_RGB, type, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -99,22 +98,7 @@ void Texture2D::createDepthMap(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void Texture2D::createFloatBuffer(int width, int height)
-{
-    destroy();
-    m_width = width;
-    m_height = height;
-    glGenTextures(1, &m_id);
-    glBindTexture(GL_TEXTURE_2D, m_id);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-}
-
-void Texture2D::createMultiSample(int width, int height, int sample)
+void Texture2D::createMultiSample(int width, int height, int sample, GLenum fmt)
 {
     destroy();
     m_width = width;

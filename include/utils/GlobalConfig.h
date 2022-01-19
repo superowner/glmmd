@@ -10,6 +10,10 @@ struct GlobalConfig
     unsigned int ShadowMapWidth;
     unsigned int ShadowMapHeight;
     unsigned int AASamples;
+    float LightCamWidth;
+    float LightCamHeight;
+    float LightCamNear;
+    float LightCamFar;
 
     GlobalConfig(const std::string &filename);
 };

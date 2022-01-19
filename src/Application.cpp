@@ -16,7 +16,6 @@
 
 #include <utils/GlobalConfig.h>
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
 const std::string projRootDir("../");
@@ -38,7 +37,6 @@ int main(int argc, char *argv[])
         return -1;
     }
     glfwSwapInterval(1);
-    std::cout << glGetString(GL_VERSION) << std::endl;
 
     {
         ImGui::CreateContext();
@@ -47,7 +45,8 @@ int main(int argc, char *argv[])
         ImGui_ImplOpenGL3_Init(glsl_version);
         ImGui::StyleColorsDark();
 
-        mainScene.init(Cfg.ScreenWidth, Cfg.ScreenHeight, Cfg.ShadowMapWidth, Cfg.ShadowMapHeight);
+        mainScene.init(Cfg.ScreenWidth, Cfg.ScreenHeight, Cfg.ShadowMapWidth, Cfg.ShadowMapHeight,
+                       Cfg.LightCamWidth, Cfg.LightCamHeight, Cfg.LightCamNear, Cfg.LightCamFar);
 
         pmx::Model model;
         model.loadFromFile(projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
@@ -90,6 +89,7 @@ int main(int argc, char *argv[])
                 mainScene.onRenderShadowMap();
 
                 offscreenRenderer.begin();
+                offscreenRenderer.onImGui();
                 mainScene.onRender();
                 offscreenRenderer.end();
 
@@ -129,7 +129,6 @@ GLFWwindow *initWindow()
         return nullptr;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     return window;
 }
 
@@ -148,7 +147,3 @@ void processInput(GLFWwindow *window)
         mainScene.eventQueue.pushKeyboardPress(GLFW_KEY_D);
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}

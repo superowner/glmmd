@@ -16,10 +16,9 @@ public:
     // Texture2D(const Texture2D &) = delete;
     // Texture2D &operator=(const Texture2D &) = delete;
     void createFromFile(const std::string &filename);
-    void create(int width, int height);
+    void create(int width, int height, GLenum internalFmt = GL_RGB, GLenum type = GL_UNSIGNED_BYTE);
     void createDepthMap(int width, int height);
-    void createFloatBuffer(int width, int height);
-    void createMultiSample(int width, int height, int sample);
+    void createMultiSample(int width, int height, int sample, GLenum fmt = GL_RGB);
     void bindData(const float *);
 
     void destroy();

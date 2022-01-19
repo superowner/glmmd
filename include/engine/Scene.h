@@ -2,8 +2,8 @@
 #define SCENE_H_
 
 #include <engine/Camera.h>
-#include <engine/ObjectBase.h>
 #include <engine/Event.h>
+#include <engine/ObjectBase.h>
 #include <engine/lighting/DirectionalLight.h>
 #include <opengl/common.h>
 #include <vector>
@@ -20,6 +20,10 @@ private:
     int m_height;
     int m_shadowMapWidth;
     int m_shadowMapHeight;
+    float m_lightCamWidth;
+    float m_lightCamHeight;
+    float m_lightCamNear;
+    float m_lightCamFar;
 
 public:
     EventQueue eventQueue;
@@ -27,7 +31,8 @@ public:
 public:
     Scene();
 
-    void init(int width, int height, int shadowMapWidth, int shadowMapHeight);
+    void init(int width, int height, int shadowMapWidth, int shadowMapHeight,
+              float lightCamWidth, float lightCamHeight, float lightCamNear, float lightCamFar);
 
     void handleEvent(float deltaTime);
     void onUpdate(float deltaTime);

@@ -6,7 +6,7 @@ FrameBufferObject::FrameBufferObject()
 }
 FrameBufferObject::~FrameBufferObject() { destroy(); }
 
-void FrameBufferObject::create(int width, int height)
+void FrameBufferObject::create(int width, int height, GLenum internalFmt, GLenum type)
 {
     destroy();
     m_width = width;
@@ -15,7 +15,7 @@ void FrameBufferObject::create(int width, int height)
     glGenFramebuffers(1, &m_id);
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 
-    m_tex.create(width, height);
+    m_tex.create(width, height, internalFmt, type);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex.id(), 0);
 
     m_RBO.create(width, height);
@@ -40,7 +40,7 @@ void FrameBufferObject::createDepthBuffer(int width, int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void FrameBufferObject::createMultiSample(int width, int height, int sample)
+void FrameBufferObject::createMultiSample(int width, int height, int sample, GLenum fmt)
 {
     destroy();
     m_width = width;
@@ -49,7 +49,7 @@ void FrameBufferObject::createMultiSample(int width, int height, int sample)
     glGenFramebuffers(1, &m_id);
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 
-    m_tex.createMultiSample(width, height, sample);
+    m_tex.createMultiSample(width, height, sample, fmt);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_tex.id(), 0);
 
     m_RBO.createMultiSample(width, height, sample);
