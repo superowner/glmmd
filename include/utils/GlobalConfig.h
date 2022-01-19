@@ -3,6 +3,8 @@
 
 #include <string>
 
+struct JsonNode;
+
 struct GlobalConfig
 {
     unsigned int ScreenWidth;
@@ -16,6 +18,7 @@ struct GlobalConfig
     float LightCamFar;
 
     GlobalConfig(const std::string &filename);
+    void fill(const JsonNode &, const std::string &key, void *ptr, char ty);
 };
 
 #endif

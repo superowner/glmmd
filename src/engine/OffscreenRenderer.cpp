@@ -44,7 +44,6 @@ void OffscreenRenderer::onImGui()
     ImGui::Begin("Screen Effect Panel");
     ImGui::Checkbox("Enable Hdr", &m_enableHdr);
     ImGui::SliderFloat("Hdr Exposure", &m_hdrExposure, 0.0f, 16.0f);
-
     ImGui::End();
 }
 

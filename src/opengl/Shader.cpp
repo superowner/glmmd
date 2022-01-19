@@ -1,11 +1,14 @@
 #include <glad/glad.h>
 #include <opengl/Shader.h>
-#include <sstream>
 #include <fstream>
-#include <iostream>
+#include <sstream>
+#include <utility>
 
-Shader::Shader(const std::string &vertPath, const std::string &fragPath)
+Shader::Shader() : m_id(0) {}
+
+void Shader::create(const std::string &vertPath, const std::string &fragPath)
 {
+    destroy();
     std::string vertSrc, fragSrc;
     std::ifstream vertFile, fragFile;
     const char *vertSrc_c, *fragSrc_c;
@@ -27,7 +30,7 @@ Shader::Shader(const std::string &vertPath, const std::string &fragPath)
     }
     catch (std::ifstream::failure e)
     {
-        std::cerr << "failed to load shader from file\n";
+        throw std::make_pair<ShaderErr, std::string>(FILE_LOAD_ERR, "");
     }
 
     unsigned int vert, frag;
@@ -41,8 +44,7 @@ Shader::Shader(const std::string &vertPath, const std::string &fragPath)
     if (!success)
     {
         glGetShaderInfoLog(vert, 512, NULL, infoLog);
-        std::cout << "vertex shader compile error\n"
-                  << infoLog << std::endl;
+        throw std::make_pair<ShaderErr, std::string>(VERT_COMPILE_ERR, infoLog);
     };
 
     frag = glCreateShader(GL_FRAGMENT_SHADER);
@@ -52,8 +54,7 @@ Shader::Shader(const std::string &vertPath, const std::string &fragPath)
     if (!success)
     {
         glGetShaderInfoLog(frag, 512, NULL, infoLog);
-        std::cout << "fragment shader compile error\n"
-                  << infoLog << std::endl;
+        throw std::make_pair<ShaderErr, std::string>(FRAG_COMPILE_ERR, infoLog);
     };
 
     m_id = glCreateProgram();
@@ -65,8 +66,7 @@ Shader::Shader(const std::string &vertPath, const std::string &fragPath)
     if (!success)
     {
         glGetProgramInfoLog(m_id, 512, NULL, infoLog);
-        std::cout << "failed to link shader\n"
-                  << infoLog << std::endl;
+        throw std::make_pair<ShaderErr, std::string>(LINKING_ERR, infoLog);
     }
 
     glDeleteShader(vert);

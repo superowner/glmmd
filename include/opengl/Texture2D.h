@@ -19,12 +19,10 @@ public:
     void create(int width, int height, GLenum internalFmt = GL_RGB, GLenum type = GL_UNSIGNED_BYTE);
     void createDepthMap(int width, int height);
     void createMultiSample(int width, int height, int sample, GLenum fmt = GL_RGB);
-    void bindData(const float *);
 
     void destroy();
     void bind() const;
     void bind(unsigned int unit) const;
-    void bindMultiSample() const;
     void unbind() const;
 
     inline unsigned int id() const { return m_id; }

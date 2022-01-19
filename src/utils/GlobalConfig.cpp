@@ -20,22 +20,32 @@ GlobalConfig::GlobalConfig(const std::string &filename)
     auto &root = parser.root();
     if (!root.isObj())
         return;
-    if (root.findKey("ScreenWidth"))
-        ScreenWidth = root["ScreenWidth"].toInt();
-    if (root.findKey("ScreenHeight"))
-        ScreenHeight = root["ScreenHeight"].toInt();
-    if (root.findKey("ShadowMapWidth"))
-        ShadowMapWidth = root["ShadowMapWidth"].toInt();
-    if (root.findKey("ShadowMapHeight"))
-        ShadowMapHeight = root["ShadowMapHeight"].toInt();
-    if (root.findKey("AASamples"))
-        AASamples = root["AASamples"].toInt();
-    if (root.findKey("LightCamWidth"))
-        LightCamWidth = root["LightCamWidth"].getNum();
-    if (root.findKey("LightCamHeight"))
-        LightCamHeight = root["LightCamHeight"].getNum();
-    if (root.findKey("LightCamNear"))
-        LightCamNear = root["LightCamNear"].getNum();
-    if (root.findKey("LightCamFar"))
-        LightCamFar = root["LightCamFar"].getNum();
+    fill(root, "ScreenWidth", &ScreenWidth, 'u');
+    fill(root, "ScreenHeight", &ScreenHeight, 'u');
+    fill(root, "ShadowMapWidth", &ShadowMapWidth, 'u');
+    fill(root, "ShadowMapHeight", &ShadowMapHeight, 'u');
+    fill(root, "AASamples", &AASamples, 'u');
+
+    fill(root, "LightCamWidth", &LightCamWidth, 'f');
+    fill(root, "LightCamHeight", &LightCamHeight, 'f');
+    fill(root, "LightCamNear", &LightCamNear, 'f');
+    fill(root, "LightCamFar", &LightCamFar, 'f');
+}
+
+void GlobalConfig::fill(const JsonNode &node, const std::string &key, void *ptr, char ty)
+{
+    if (node.findKey(key))
+    {
+        switch (ty)
+        {
+        case 'u':
+            *((unsigned int *)ptr) = node[key].toInt();
+            break;
+        case 'f':
+            *((float *)ptr) = node[key].getNum();
+            break;
+        default:
+            break;
+        }
+    }
 }

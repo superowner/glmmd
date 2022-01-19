@@ -1,7 +1,6 @@
 #include <glad/glad.h>
 #include <opengl/Texture2D.h>
 #define STB_IMAGE_IMPLEMENTATION
-#include <iostream>
 #include <stb/stb_image.h>
 Texture2D::Texture2D() : m_id(0), m_height(0), m_width(0), m_channels(0) {}
 Texture2D::~Texture2D() { destroy(); }
@@ -26,7 +25,7 @@ void Texture2D::createFromFile(const std::string &filename)
         data[0] = 0xff;
         data[1] = 0xff;
         data[2] = 0xff;
-        std::cout << "Failed to load texture " << filename << std::endl;
+        // GLMMD_LOG_WARN("Failed to load texture {}", filename);
     }
     if (m_channels == 3)
     {
@@ -108,17 +107,6 @@ void Texture2D::createMultiSample(int width, int height, int sample, GLenum fmt)
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_id);
     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sample, GL_RGB, width, height, GL_TRUE);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-}
-
-void Texture2D::bindData(const float *data)
-{
-    bind();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, data);
-}
-
-void Texture2D::bindMultiSample() const
-{
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_id, 0);
 }
 
 void Texture2D::destroy()

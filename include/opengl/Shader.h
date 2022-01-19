@@ -3,14 +3,26 @@
 
 #include <string>
 #include <glm/glm.hpp>
+
+enum ShaderErr
+{
+    FILE_LOAD_ERR,
+    VERT_COMPILE_ERR,
+    FRAG_COMPILE_ERR,
+    LINKING_ERR
+};
+
+
 class Shader
 {
 private:
     unsigned int m_id;
 
 public:
-    Shader(const std::string &vertPath, const std::string &fragPath);
+    Shader();
     ~Shader();
+
+    void create(const std::string &vertPath, const std::string &fragPath);
 
     Shader(const Shader &) = delete;
     Shader &operator=(const Shader &) = delete;

@@ -1,4 +1,5 @@
 add_subdirectory(3rdparty)
+add_subdirectory(opengl)
 
 add_executable(glmmd)
 
@@ -18,14 +19,7 @@ PRIVATE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/CodeConverter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/GlobalConfig.cpp
-    
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/VertexBufferObject.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/IndexBufferObject.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/VertexArrayObject.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/FrameBufferObject.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/RenderBufferObject.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/Shader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opengl/Texture2D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/Logger.cpp
 
 )
 
@@ -33,7 +27,7 @@ target_include_directories(glmmd
 PRIVATE 
     ${PROJECT_SOURCE_DIR}/deps/glad/include
     ${PROJECT_SOURCE_DIR}/deps/glfw/include
-    ${PROJECT_SOURCE_DIR}/deps/glm
+    ${PROJECT_SOURCE_DIR}/deps/spdlog/include
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/3rdparty
 )
@@ -44,5 +38,7 @@ target_link_libraries(glmmd
 PRIVATE 
     glfw
     imgui
+    opengl_framework
+    spdlog::spdlog
     OpenGL::GL
 )

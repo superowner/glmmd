@@ -53,7 +53,7 @@ float calcShadow()
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
 
     float shadow = 0;
-    int kernelRadius =0;
+    int kernelRadius = 0;
     for (int x = -kernelRadius; x <= kernelRadius; ++x)
     {
         for (int y = -kernelRadius; y <= kernelRadius; ++y)
@@ -83,9 +83,9 @@ void main()
     if (opacity < 0.01) discard;
 
     float shadow = calcShadow();
-    vec3 toonShadow = vec3(1.0, 1.0, 1.0);
+    vec3 toonShadow = vec3(1.0);
     if (mat.hasToon > 0)
-    toonShadow = texture(mat.toonTex, vec2(0.5, shadow*0.99)).xyz;
+        toonShadow = texture(mat.toonTex, vec2(0.5, shadow*0.99)).xyz;
 
     vec3 _ambient = mainLight.ambientLight * mat.ambientColor;
     vec3 _diffuse = mainLight.diffuseLight * toonShadow;
