@@ -1,5 +1,5 @@
-#include <engine/Scene.h>
 #include <imgui/imgui.h>
+#include <engine/Scene.h>
 #include <GLFW/glfw3.h>
 Scene::Scene() {}
 
@@ -120,13 +120,19 @@ void Scene::onRender()
 
 void Scene::onImGuiRender()
 {
+    ImGui::Begin("Scene Control Panel");
+    ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
+
     ImGui::SliderFloat("FOV", &m_camera.yfov, 0.1f, 120.0f);
     ImGui::SliderFloat3("Main Light Dir", &m_mainLight.dir.x, -1.0f, 1.0f);
     ImGui::ColorEdit3("Main Light Diffuse", m_mainLight.diffuse);
     ImGui::ColorEdit3("Main Light Ambient", m_mainLight.ambient);
 
+    ImGui::End();
+
     for (auto &pObj : m_objectList)
         pObj->onImGuiRender();
+        
 }
 
 void Scene::addObject(ObjectBase *pObj)

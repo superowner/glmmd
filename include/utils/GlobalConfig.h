@@ -17,6 +17,9 @@ struct GlobalConfig
     float LightCamNear;
     float LightCamFar;
 
+    std::string FontPath;
+    float FontSize;
+
     GlobalConfig(const std::string &filename);
     void fill(const JsonNode &, const std::string &key, void *ptr, char ty);
 };

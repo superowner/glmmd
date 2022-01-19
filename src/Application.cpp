@@ -28,9 +28,8 @@ GlobalConfig Cfg(projRootDir + "res/GlobalConfig.json");
 
 int main(int argc, char *argv[])
 {
-    GLFWwindow *window = initWindow();
-
     Logger::init();
+    GLFWwindow *window = initWindow();
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         GLMMD_LOG_ERROR("Failed to initialize GLAD");
@@ -135,11 +134,7 @@ int main(int argc, char *argv[])
                 offscreenRenderer.onImGui();
                 mainScene.onRender();
                 offscreenRenderer.end();
-
-                ImGui::Begin("Scene Control Panel");
-                ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
                 mainScene.onImGuiRender();
-                ImGui::End();
             }
 
             ImGui::Render();
@@ -182,6 +177,15 @@ void initImGui(GLFWwindow *window)
     const char *glsl_version = "#version 130";
     ImGui_ImplOpenGL3_Init(glsl_version);
     ImGui::StyleColorsDark();
+
+    if (!Cfg.FontPath.empty())
+    {
+        auto io = ImGui::GetIO();
+        io.Fonts->AddFontDefault();
+        ImFont *font = io.Fonts->AddFontFromFileTTF(Cfg.FontPath.c_str(), Cfg.FontSize, NULL, NULL);
+        IM_ASSERT(font != NULL);
+        ImGui::GetIO().FontDefault = font;
+    }
 }
 
 void processInput(GLFWwindow *window)

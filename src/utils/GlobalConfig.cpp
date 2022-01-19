@@ -9,7 +9,9 @@ GlobalConfig::GlobalConfig(const std::string &filename)
       LightCamWidth(50.0f),
       LightCamHeight(50.0f),
       LightCamNear(1.0f),
-      LightCamFar(40.0f)
+      LightCamFar(40.0f),
+      FontPath(""),
+      FontSize(20.0f)
 {
     JsonParser parser;
     if (!parser.loadFromFile(filename.c_str()))
@@ -30,6 +32,9 @@ GlobalConfig::GlobalConfig(const std::string &filename)
     fill(root, "LightCamHeight", &LightCamHeight, 'f');
     fill(root, "LightCamNear", &LightCamNear, 'f');
     fill(root, "LightCamFar", &LightCamFar, 'f');
+
+    fill(root, "FontPath", &FontPath, 's');
+    fill(root, "FontSize", &FontSize, 'f');
 }
 
 void GlobalConfig::fill(const JsonNode &node, const std::string &key, void *ptr, char ty)
@@ -44,6 +49,8 @@ void GlobalConfig::fill(const JsonNode &node, const std::string &key, void *ptr,
         case 'f':
             *((float *)ptr) = node[key].getNum();
             break;
+        case 's':
+            *((std::string *)ptr) = node[key].getStr();
         default:
             break;
         }

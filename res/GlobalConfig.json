@@ -3,5 +3,7 @@
     "ScreenHeight": 1080,
     "ShadowMapWidth": 2048,
     "ShadowMapHeight": 2048,
-    "AASamples": 4
+    "AASamples": 4,
+    "FontPath": "../res/imgui-font/arial.ttf",
+    "FontSize": 20
 }
