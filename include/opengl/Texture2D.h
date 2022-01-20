@@ -19,7 +19,9 @@ public:
     void create(int width, int height, GLenum internalFmt = GL_RGB, GLenum type = GL_UNSIGNED_BYTE);
     void createDepthMap(int width, int height);
     void createMultiSample(int width, int height, int sample, GLenum fmt = GL_RGB);
+    void createFloatBuffer(int width, int height);
 
+    void fillFloatData(const float *data);
     void destroy();
     void bind() const;
     void bind(unsigned int unit) const;

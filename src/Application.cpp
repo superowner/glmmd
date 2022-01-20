@@ -7,6 +7,9 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
+#include <animator/PmxBoneAnimator.h>
+#include <animator/VmdData.h>
+#include <pmx/PmxModel.h>
 #include <pmx/PmxModelRenderer.h>
 
 #include <engine/OffscreenRenderer.h>
@@ -86,27 +89,18 @@ int main(int argc, char *argv[])
         pmx::Model model;
         pmx::Model plane;
 
-        try
-        {
-            model.loadFromFile(projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
-        }
-        catch (const std::runtime_error &err)
-        {
-            GLMMD_LOG_ERROR("Failed to load model from {}",
-                            projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
-        }
+        // model.loadFromFile(projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
+        model.loadFromFile(projRootDir + "res/models/Cylinder.pmx");
+        plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
 
-        try
-        {
-            plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
-        }
-        catch (const std::runtime_error &err)
-        {
-            GLMMD_LOG_ERROR("Failed to load model from {}",
-                            projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
-        }
-        PmxModelRenderer renderer(&model, &modelShader, &modelDepthShader);
-        PmxModelRenderer planeRenderer(&plane, &planeShader, &planeDepthShader);
+        VmdData motion;
+        // motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
+        motion.loadFromFile(projRootDir + "res/motions/test.vmd");
+
+        PmxBoneAnimator animator(model, motion);
+        PmxModelRenderer renderer(&model, &modelShader, &modelDepthShader, &animator);
+        PmxModelRenderer planeRenderer(&plane, &planeShader, &planeDepthShader, nullptr);
+
         // Create Scene
         mainScene.addObject(&renderer);
         mainScene.addObject(&planeRenderer);

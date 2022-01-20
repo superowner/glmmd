@@ -21,6 +21,9 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/GlobalConfig.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/Logger.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/animator/VmdData.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/animator/PmxBoneAnimator.cpp
+
 )
 
 target_include_directories(glmmd

@@ -1,8 +1,8 @@
 #ifndef OPENGL_SHADER_H_
 #define OPENGL_SHADER_H_
 
-#include <string>
 #include <glm/glm.hpp>
+#include <string>
 
 enum ShaderErr
 {
@@ -11,7 +11,6 @@ enum ShaderErr
     FRAG_COMPILE_ERR,
     LINKING_ERR
 };
-
 
 class Shader
 {
@@ -33,10 +32,11 @@ public:
     void destroy();
 
     void setUniform1i(const char *name, int n) const;
-    void setUniformMatrix4fv(const char *name, unsigned int count, bool transpose, const glm::mat4 m) const;
-    void setUniform3fv(const char *name, unsigned int count, const glm::vec3 v) const;
+    void setUniformMatrix4fv(const char *name, bool transpose, const glm::mat4 m) const;
+    void setUniformMatrix4fv(const char *name, unsigned int count, bool transpose, const float *) const;
+    void setUniform3fv(const char *name, const glm::vec3 v) const;
     void setUniform1f(const char *name, float f) const;
-    void setUniform4fv(const char *name, unsigned int count, const glm::vec4 v) const;
+    void setUniform4fv(const char *name, const glm::vec4 v) const;
 };
 
 #endif

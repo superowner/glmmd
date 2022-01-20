@@ -3,11 +3,25 @@
 #include <pmx/PmxModelRenderer.h>
 void PmxModelRenderer::onUpdate(float deltaTime)
 {
+    if (m_pAnimator != nullptr)
+    {
+        m_frameTime += deltaTime * 30.0f;
+        m_pAnimator->updateBoneTransform(m_frameTime, deltaTime);
+        m_boneTransformTex.fillFloatData(m_pAnimator->finalTransformBuffer());
+    }
 }
 
 void PmxModelRenderer::onRenderShadowMap()
 {
     m_depthShader->use();
+    if (m_pAnimator != nullptr)
+    {
+        m_depthShader->setUniform1i("boneCount", m_pAnimator->boneCount());
+        m_boneTransformTex.bind(8);
+        m_depthShader->setUniform1i("boneTransformTex", 8);
+    }
+    else
+        m_depthShader->setUniform1i("boneCount", 0);
     m_VAO.bind();
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
@@ -28,6 +42,16 @@ void PmxModelRenderer::onRender()
 {
     m_mainShader->use();
     m_VAO.bind();
+
+    if (m_pAnimator != nullptr)
+    {
+        m_mainShader->setUniform1i("boneCount", m_pAnimator->boneCount());
+        m_boneTransformTex.bind(8);
+        m_mainShader->setUniform1i("boneTransformTex", 8);
+    }
+    else
+        m_mainShader->setUniform1i("boneCount", 0);
+
     for (unsigned int i = 0; i < m_IBOList.size(); ++i)
     {
         const auto &mat = m_pModel->materials[i];
@@ -36,12 +60,12 @@ void PmxModelRenderer::onRender()
         else
             glEnable(GL_CULL_FACE);
 
-        m_mainShader->setUniform4fv("mat.diffuseColor", 1, mat.diffuse);
-        m_mainShader->setUniform3fv("mat.specularColor", 1, mat.specular);
+        m_mainShader->setUniform4fv("mat.diffuseColor", mat.diffuse);
+        m_mainShader->setUniform3fv("mat.specularColor", mat.specular);
         m_mainShader->setUniform1f("mat.specIntensity", mat.specIntensity);
-        m_mainShader->setUniform3fv("mat.ambientColor", 1, mat.ambient);
+        m_mainShader->setUniform3fv("mat.ambientColor", mat.ambient);
 
-        m_mainShader->setUniform4fv("mat.diffuse", 1, mat.edgeColor);
+        m_mainShader->setUniform4fv("mat.diffuse", mat.edgeColor);
         m_mainShader->setUniform1f("mat.specularIntensity", mat.edgeSize);
 
         if (0 <= mat.diffuseTexId && mat.diffuseTexId < m_texList.size())
@@ -81,15 +105,15 @@ void PmxModelRenderer::onRender()
         glDrawElements(GL_TRIANGLES, m_IBOList[i].getCount(), GL_UNSIGNED_INT, 0);
     }
 }
-PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader)
-    : ObjectBase(pShader, pDepthShader), m_pModel(pModel)
+PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *pDepthShader, PmxBoneAnimator *pAnimator)
+    : ObjectBase(pShader, pDepthShader), m_pModel(pModel), m_pAnimator(pAnimator), m_frameTime(0.0f)
 {
     assert(m_pModel != nullptr);
 
     m_VAO.create();
     m_VAO.bind();
 
-    const unsigned int stride = 8;
+    const unsigned int stride = 17;
 
     auto &vl = m_pModel->vertices;
     float *vertices = new float[vl.size() * stride];
@@ -107,6 +131,30 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
 
         vertices[j + 6] = vl[i].uv.x;
         vertices[j + 7] = vl[i].uv.y;
+
+        switch (vl[i].deformMethod)
+        {
+        case 0:
+            vertices[j + 8] = 1;
+            vertices[j + 9] = vl[i].bindedBone[0];
+            break;
+        case 1:
+        case 3:
+            vertices[j + 8] = 2;
+            vertices[j + 9] = vl[i].bindedBone[0];
+            vertices[j + 10] = vl[i].bindedBone[1];
+            vertices[j + 13] = vl[i].weights[0];
+            vertices[j + 14] = vl[i].weights[1];
+            break;
+        case 2:
+            vertices[j + 8] = 4;
+            for (uint8_t k = 0; k < 4; ++k)
+            {
+                vertices[j + 9 + k] = vl[i].bindedBone[k];
+                vertices[j + 13 + k] = vl[i].weights[k];
+            }
+            break;
+        }
     }
 
     m_VBO.create(vertices, sizeof(float) * m_pModel->vertices.size() * stride);
@@ -125,6 +173,9 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
     layout.push(GL_FLOAT, 3);
     layout.push(GL_FLOAT, 3);
     layout.push(GL_FLOAT, 2);
+    layout.push(GL_FLOAT, 1);
+    layout.push(GL_FLOAT, 4);
+    layout.push(GL_FLOAT, 4);
     m_VAO.addBuffer(m_VBO, layout);
     m_VBO.unbind();
     m_VAO.unbind();
@@ -137,8 +188,17 @@ PmxModelRenderer::PmxModelRenderer(pmx::Model *pModel, Shader *pShader, Shader *
     for (unsigned int i = 0; i < 10; ++i)
         m_defaultToon[i].createFromFile(std::string("../res/toon/toon") + (i < 9 ? "0" : "") +
                                         std::to_string(i + 1) + ".bmp");
+
+    if (m_pAnimator != nullptr)
+        m_boneTransformTex.createFloatBuffer(4, m_pAnimator->boneCount());
 }
 
 void PmxModelRenderer::onImGuiRender()
 {
+    ImGui::Begin(("model " + m_pModel->info.modelNameEN).c_str());
+    if (m_pAnimator != nullptr)
+    {
+        ImGui::SliderFloat("frame time", &m_frameTime, 0.0f, m_pAnimator->frameCount());
+    }
+    ImGui::End();
 }

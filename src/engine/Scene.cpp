@@ -1,6 +1,6 @@
-#include <imgui/imgui.h>
 #include <engine/Scene.h>
 #include <GLFW/glfw3.h>
+#include <imgui/imgui.h>
 Scene::Scene() {}
 
 void Scene::init(int width, int height, int shadowMapWidth, int shadowMapHeight,
@@ -70,8 +70,8 @@ void Scene::onRenderShadowMap()
     m_lightCamera = Camera(0.0f, m_lightCamNear, m_lightCamFar,
                            -0.5f * m_lightCamFar * m_mainLight.dir,
                            glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 lightProjection = m_lightCamera.getOrthoProjMatrix(-0.5 * m_lightCamWidth, 0.5 * m_lightCamWidth,
-                                                                 -0.5 * m_lightCamHeight, 0.5 * m_lightCamHeight);
+    glm::mat4 lightProjection = m_lightCamera.getOrthoProjMatrix(-0.5f * m_lightCamWidth, 0.5f * m_lightCamWidth,
+                                                                 -0.5f * m_lightCamHeight, 0.5f * m_lightCamHeight);
     glm::mat4 lightView = m_lightCamera.getViewMatrix();
     m_lightSpaceMatrix = lightProjection * lightView;
     for (auto &pObj : m_objectList)
@@ -79,8 +79,8 @@ void Scene::onRenderShadowMap()
         if (pObj->depthShader() != nullptr)
         {
             pObj->depthShader()->use();
-            pObj->depthShader()->setUniformMatrix4fv("model", 1, GL_FALSE, glm::mat4(1.0f));
-            pObj->depthShader()->setUniformMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, m_lightSpaceMatrix);
+            pObj->depthShader()->setUniformMatrix4fv("model", GL_FALSE, glm::mat4(1.0f));
+            pObj->depthShader()->setUniformMatrix4fv("lightSpaceMatrix", GL_FALSE, m_lightSpaceMatrix);
             pObj->onRenderShadowMap();
         }
     }
@@ -97,21 +97,21 @@ void Scene::onRender()
         glm::mat4 projection = m_camera.getProjMatrix();
         pObj->mainShader()->use();
 
-        pObj->mainShader()->setUniform3fv("lightPos", 1, m_lightCamera.pos);
-        pObj->mainShader()->setUniformMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, m_lightSpaceMatrix);
+        pObj->mainShader()->setUniform3fv("lightPos", m_lightCamera.pos);
+        pObj->mainShader()->setUniformMatrix4fv("lightSpaceMatrix", GL_FALSE, m_lightSpaceMatrix);
         m_shadowMap.tex().bind(9);
         pObj->mainShader()->setUniform1i("shadowMap", 9);
 
-        pObj->mainShader()->setUniformMatrix4fv("model", 1, GL_FALSE, model);
-        pObj->mainShader()->setUniformMatrix4fv("view", 1, GL_FALSE, view);
-        pObj->mainShader()->setUniformMatrix4fv("projection", 1, GL_FALSE, projection);
+        pObj->mainShader()->setUniformMatrix4fv("model", GL_FALSE, model);
+        pObj->mainShader()->setUniformMatrix4fv("view", GL_FALSE, view);
+        pObj->mainShader()->setUniformMatrix4fv("projection", GL_FALSE, projection);
 
-        pObj->mainShader()->setUniform3fv("viewPos", 1, m_camera.pos);
+        pObj->mainShader()->setUniform3fv("viewPos", m_camera.pos);
 
-        pObj->mainShader()->setUniform3fv("mainLight.dir", 1, glm::normalize(m_mainLight.dir));
-        pObj->mainShader()->setUniform3fv("mainLight.diffuseLight", 1,
+        pObj->mainShader()->setUniform3fv("mainLight.dir", glm::normalize(m_mainLight.dir));
+        pObj->mainShader()->setUniform3fv("mainLight.diffuseLight",
                                           glm::vec3(m_mainLight.diffuse[0], m_mainLight.diffuse[1], m_mainLight.diffuse[2]));
-        pObj->mainShader()->setUniform3fv("mainLight.ambientLight", 1,
+        pObj->mainShader()->setUniform3fv("mainLight.ambientLight",
                                           glm::vec3(m_mainLight.ambient[0], m_mainLight.ambient[1], m_mainLight.ambient[2]));
 
         pObj->onRender();
@@ -132,7 +132,6 @@ void Scene::onImGuiRender()
 
     for (auto &pObj : m_objectList)
         pObj->onImGuiRender();
-        
 }
 
 void Scene::addObject(ObjectBase *pObj)

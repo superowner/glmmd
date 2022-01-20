@@ -4,6 +4,7 @@
 #include <engine/ObjectBase.h>
 #include <opengl/common.h>
 #include <pmx/PmxModel.h>
+#include <animator/PmxBoneAnimator.h>
 class PmxModelRenderer : public ObjectBase
 {
 private:
@@ -14,8 +15,12 @@ private:
     std::vector<Texture2D> m_texList;
     Texture2D m_defaultToon[10];
 
+    float m_frameTime;
+    PmxBoneAnimator *m_pAnimator;
+    Texture2D m_boneTransformTex;
+
 public:
-    PmxModelRenderer(pmx::Model *, Shader *, Shader *);
+    PmxModelRenderer(pmx::Model *, Shader *, Shader *, PmxBoneAnimator *);
     void onUpdate(float deltaTime) override;
     void onRender() override;
     void onRenderShadowMap() override;
