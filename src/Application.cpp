@@ -1,4 +1,5 @@
 #include <glad/glad.h>
+//
 #include <GLFW/glfw3.h>
 
 #include <opengl/common.h>
@@ -89,16 +90,11 @@ int main(int argc, char *argv[])
         pmx::Model model;
         pmx::Model plane;
 
-        // model.loadFromFile(projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
-        model.loadFromFile(projRootDir + "res/models/Cylinder.pmx");
+        model.loadFromFile(projRootDir + "res/models/HakureiReimu_v1.0/HakureiReimu.pmx");
         plane.loadFromFile(projRootDir + "res/models/Plane.pmx");
 
-        VmdData motion;
-        // motion.loadFromFile(projRootDir + "res/motions/ochame_kinou_left.vmd");
-        motion.loadFromFile(projRootDir + "res/motions/test.vmd");
-
-        PmxBoneAnimator animator(model, motion);
-        PmxModelRenderer renderer(&model, &modelShader, &modelDepthShader, &animator);
+        // PmxBoneAnimator animator(model, motion);
+        PmxModelRenderer renderer(&model, &modelShader, &modelDepthShader, nullptr);
         PmxModelRenderer planeRenderer(&plane, &planeShader, &planeDepthShader, nullptr);
 
         // Create Scene

@@ -3,8 +3,9 @@
 #include <cassert>
 #include <functional>
 #include <unordered_map>
-#include <utils/Logger.h>
-#define IK_SOLVER_TOL 1e-8f
+#define IK_SOLVER_DIS_TOL 1e-3f
+#define IK_SOLVER_ANGLE_TOL 1e-2f
+#define IK_MAX_ANGLE_STEP 0.5f
 
 glm::mat4 BoneTransform::getLocalMatrix()
 {
@@ -32,7 +33,6 @@ PmxBoneAnimator::PmxBoneAnimator(const pmx::Model &model, const VmdData &motion)
             m_keyFrameTable[ite->second].push_back(kf);
         m_frameCount = std::max(m_frameCount, kf.frameTime);
     }
-    GLMMD_LOG_INFO("Max frame: {}", m_frameCount);
     for (auto &kfl : m_keyFrameTable)
         std::sort(kfl.begin(), kfl.end(),
                   [](const BoneKeyFrameRecord &kf1, const BoneKeyFrameRecord &kf2)
@@ -254,9 +254,9 @@ void PmxBoneAnimator::solveIK()
             b.IK_rotation = identityRotation;
             b.localRotationOrigin = b.localRotation;
         }
-
         for (uint32_t loopCount = 0; loopCount < IKBone.IK_loopCount; ++loopCount)
         {
+            bool inTol = true;
             for (uint32_t j = 0; j < IKBone.IK_linkList.size(); ++j)
             {
                 glm::vec3 endEffectorPos = m_boneTransformList[IKBone.IK_targetBoneIndex].getGlobalPosition();
@@ -267,26 +267,30 @@ void PmxBoneAnimator::solveIK()
                 glm::vec3 currentBonePos = currentBone.getGlobalPosition();
                 auto &pos = currentBonePos;
 
-                if (glm::length(targetPos - endEffectorPos) < IK_SOLVER_TOL ||
-                    glm::length(targetPos - currentBonePos) < IK_SOLVER_TOL ||
-                    glm::length(endEffectorPos - currentBonePos) < IK_SOLVER_TOL)
+                if (glm::length(targetPos - endEffectorPos) < IK_SOLVER_DIS_TOL)
                 {
                     loopCount = IKBone.IK_loopCount;
                     break;
                 }
                 glm::vec3 targetDir = targetPos - currentBonePos;
                 glm::vec3 endEffectorDir = endEffectorPos - currentBonePos;
-
-                float rotAngle = std::acos(clamp(glm::dot(targetDir, endEffectorDir) /
-                                                     (glm::length(targetDir) * glm::length(endEffectorDir)),
-                                                 -1.0f, 1.0f));
-
-                if (rotAngle == 0.0f)
+                if (glm::length(targetDir) < IK_SOLVER_DIS_TOL ||
+                    glm::length(endEffectorDir) < IK_SOLVER_DIS_TOL)
                     continue;
-                glm::mat3 inverseAxisTransform = glm::mat3(currentBone.globalMatrix);
-                glm::vec3 rotAxis = glm::inverse(inverseAxisTransform) * glm::cross(endEffectorDir, targetDir);
-                // Add local transform
-                if (glm::length(rotAxis) == 0.0f)
+                glm::mat3 inverseAxisTransform = glm::inverse(glm::mat3(currentBone.globalMatrix));
+                targetDir = glm::normalize(inverseAxisTransform * targetDir);
+                endEffectorDir = glm::normalize(inverseAxisTransform * endEffectorDir);
+
+                float rotAngle = clamp(std::acos(clamp(glm::dot(targetDir, endEffectorDir), -1.0f, 1.0f)),
+                                       -IK_MAX_ANGLE_STEP, IK_MAX_ANGLE_STEP);
+                if (std::abs(rotAngle) > IK_SOLVER_ANGLE_TOL)
+                    inTol = false;
+                else
+                    continue;
+                glm::vec3 rotAxis = glm::cross(endEffectorDir, targetDir);
+                if (glm::length(rotAxis) > IK_SOLVER_ANGLE_TOL)
+                    inTol = false;
+                else
                     continue;
                 glm::quat rot(float(cos(0.5f * rotAngle)),
                               glm::normalize(rotAxis) * float(sin(0.5f * rotAngle)));
@@ -294,18 +298,26 @@ void PmxBoneAnimator::solveIK()
                 currentBone.IK_rotation = rot * currentBone.IK_rotation;
                 if (linkedBone.angleLimitOn)
                 {
-                    glm::vec3 rotEulerAngles = glm::eulerAngles(currentBone.IK_rotation);
+                    if (loopCount == 0)
+                    {
+                        currentBone.IK_rotation = glm::quat(0.5f * (linkedBone.maxAngle + linkedBone.minAngle));
+                    }
+                    else
+                    {
+                        glm::vec3 rotEulerAngles = glm::eulerAngles(currentBone.IK_rotation);
 
-                    rotEulerAngles.x = clamp(rotEulerAngles.x, linkedBone.minAngle.x, linkedBone.maxAngle.x);
-                    rotEulerAngles.y = clamp(rotEulerAngles.y, linkedBone.minAngle.y, linkedBone.maxAngle.y);
-                    rotEulerAngles.z = clamp(rotEulerAngles.z, linkedBone.minAngle.z, linkedBone.maxAngle.z);
-                    currentBone.IK_rotation = glm::quat(rotEulerAngles);
+                        rotEulerAngles.x = clamp(rotEulerAngles.x, linkedBone.minAngle.x, linkedBone.maxAngle.x);
+                        rotEulerAngles.y = clamp(rotEulerAngles.y, linkedBone.minAngle.y, linkedBone.maxAngle.y);
+                        rotEulerAngles.z = clamp(rotEulerAngles.z, linkedBone.minAngle.z, linkedBone.maxAngle.z);
+                        currentBone.IK_rotation = glm::quat(rotEulerAngles);
+                    }
                 }
-
                 currentBone.localRotation = currentBone.IK_rotation * currentBone.localRotationOrigin;
                 setBoneGlobalTransformBeforePhysics();
                 setBoneGlobalTransformAfterPhysics();
             }
+            if (inTol)
+                break;
         }
     }
 }

@@ -49,6 +49,7 @@ private:
 
     static glm::vec3 identityTranslation;
     static glm::quat identityRotation;
+
     static float calcCurve(const uint8_t *curve, float t);
     static glm::vec3 lerpTranslation(const glm::vec3 &r0, const glm::vec3 &r1, float tx, float ty, float tz);
     static float clamp(float x, float floor, float ceil);
